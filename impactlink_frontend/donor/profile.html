@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Profile — ImpactLink</title>
+<link rel="stylesheet" href="../css/theme.css"/>
+<style>
+canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+.page-shell { position: relative; z-index: 1; }
+
+.hero { text-align: center; padding: 2.5rem 0 2rem; animation: fadeUp 0.8s cubic-bezier(0.22,1,0.36,1) 0.1s both; }
+.hero-title { font-size: clamp(1.8rem, 4vw, 2.6rem); margin-bottom: 0.4rem; }
+.hero-sub   { margin-bottom: 1.2rem; }
+
+.profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+@media (max-width: 680px) { .profile-grid { grid-template-columns: 1fr; } }
+
+.section-title {
+  font-family: var(--font-display); font-size: 1.1rem; font-weight: 400;
+  letter-spacing: 0.14em; color: var(--text-primary); margin-bottom: 1.2rem;
+  text-shadow: 0 0 8px rgba(255,255,255,0.5);
+}
+
+.add-row { display: flex; gap: 0.6rem; margin-bottom: 1.2rem; }
+.add-row .input-field { flex: 1; }
+.chips-area { display: flex; flex-wrap: wrap; gap: 0.5rem; min-height: 36px; }
+
+/* CATEGORY BUTTONS */
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.cat-btn {
+  font-family: var(--font-body);
+  font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 0.6rem 0.4rem;
+  border: 1px solid rgba(80,120,200,0.30);
+  border-radius: 6px;
+  background: rgba(15,25,60,0.40);
+  color: rgba(150,185,240,0.75);
+  cursor: pointer; transition: all 0.2s; text-align: center;
+  width: 100%;
+}
+.cat-btn:hover {
+  border-color: rgba(80,150,240,0.65);
+  color: rgba(200,225,255,0.95);
+  background: rgba(25,55,140,0.25);
+}
+.cat-btn.active {
+  border-color: rgba(150,80,240,0.80);
+  background: rgba(80,30,160,0.30);
+  color: #d4aaff;
+  box-shadow: 0 0 14px rgba(120,50,220,0.20);
+}
+
+.pref-count { font-size: 0.62rem; color: var(--text-muted); letter-spacing: 0.08em; margin-top: 0.3rem; }
+
+.save-row {
+  display: flex; justify-content: flex-end; gap: 0.8rem; margin-top: 1rem;
+  animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.5s both;
+}
+
+.info-card {
+  background: rgba(20,40,80,0.12); border: 1px solid rgba(50,100,200,0.18);
+  border-radius: 8px; padding: 1rem 1.2rem; margin-bottom: 1.5rem;
+  font-family: var(--font-body); font-size: 0.76rem;
+  color: rgba(140,175,235,0.65); line-height: 1.6; letter-spacing: 0.04em;
+}
+.info-card a { color: var(--accent-blue); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<div class="page-shell">
+  <nav class="nav">
+    <a href="../index.html" class="nav-logo">ImpactLink</a>
+    <div class="nav-links">
+      <a href="profile.html"   class="nav-link active">Profile</a>
+      <a href="dashboard.html" class="nav-link">Dashboard</a>
+      <a href="donations.html" class="nav-link">Donations</a>
+      <button class="nav-link logout" onclick="handleLogout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page-content">
+    <div class="hero">
+      <div class="display-heading hero-title" id="greeting">Your Profile</div>
+      <div class="sub-heading hero-sub">Set up your preferences to get matched with causes</div>
+      <div class="glow-line" style="max-width:300px;margin:0 auto;"></div>
+    </div>
+
+    <div class="info-card" id="info-banner" style="display:none;">
+      ✦ &nbsp;You're all set! Head to the <a href="dashboard.html">Dashboard</a> to see your matched NGOs.
+    </div>
+
+    <div class="profile-grid">
+
+      <!-- Cause Preferences — buttons hardcoded, no JS dependency to render -->
+      <div class="card card-purple anim-card" style="animation-delay:0.15s;">
+        <div class="section-title">Cause Preferences</div>
+        <p style="font-size:0.72rem;color:var(--text-muted);margin-bottom:1rem;letter-spacing:0.06em;line-height:1.5;">
+          Select the causes you care about. These determine which NGOs get matched to you.
+        </p>
+        <div class="cat-grid" id="cat-grid">
+          <span style="font-size:0.68rem;color:rgba(100,130,190,0.35);letter-spacing:0.08em;">Loading categories…</span>
+        </div>
+        <div class="pref-count" id="pref-count">0 selected</div>
+      </div>
+
+      <!-- Locations -->
+      <div class="card anim-card" style="animation-delay:0.28s;">
+        <div class="section-title">Locations</div>
+        <p style="font-size:0.72rem;color:var(--text-muted);margin-bottom:1rem;letter-spacing:0.06em;line-height:1.5;">
+          Add cities or regions where you'd like to see impact.
+        </p>
+        <div class="add-row">
+          <input class="input-field" id="loc-input" placeholder="e.g. Karachi, Lahore…" type="text"/>
+          <button class="btn btn-primary btn-sm" onclick="addLocation()">Add</button>
+        </div>
+        <div class="chips-area" id="loc-chips">
+          <span style="font-size:0.68rem;color:rgba(100,130,190,0.35);letter-spacing:0.08em;">No locations added yet</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="save-row">
+      <a href="dashboard.html" class="btn btn-primary btn-sm" style="text-decoration:none;">Go to Dashboard →</a>
+      <button class="btn btn-purple" id="save-btn" onclick="saveProfile()">Save Preferences</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script src="../js/api.js"></script>
+<script>
+// Swirl
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resize(); window.addEventListener('resize', resize);
+const ARCS = [
+  { a0:3.9,  a1:5.5,  r:0.44, lw:90, alpha:0.06, blur:55, color:'20,55,160'  },
+  { a0:3.95, a1:5.45, r:0.43, lw:35, alpha:0.11, blur:28, color:'30,75,190'  },
+  { a0:4.0,  a1:5.4,  r:0.42, lw:9,  alpha:0.35, blur:6,  color:'55,115,230' },
+  { a0:0.8,  a1:2.4,  r:0.38, lw:80, alpha:0.05, blur:50, color:'15,45,150'  },
+  { a0:0.9,  a1:2.3,  r:0.36, lw:8,  alpha:0.30, blur:6,  color:'50,105,220' },
+];
+function drawSwirl() {
+  const W=canvas.width, H=canvas.height, cx=W*.5, cy=H*.5, b=Math.min(W,H);
+  ctx.clearRect(0,0,W,H);
+  ARCS.forEach(a => {
+    ctx.save(); ctx.filter=`blur(${a.blur}px)`;
+    ctx.strokeStyle=`rgba(${a.color},${a.alpha})`;
+    ctx.lineWidth=a.lw; ctx.lineCap='round';
+    ctx.beginPath(); ctx.arc(cx,cy,a.r*b,a.a0,a.a1); ctx.stroke(); ctx.restore();
+  });
+}
+drawSwirl();
+
+// Auth — read directly from localStorage, no api call
+const session = JSON.parse(localStorage.getItem('il_user') || localStorage.getItem('impactlink_session') || 'null');
+if (!session || session.role !== 'donor') { window.location.href = '../pages/login.html'; }
+else { document.getElementById('greeting').textContent = 'Hello, ' + (session.name || session.orgName || 'User'); }
+
+// State
+let selectedPrefs = [];
+let locations     = [];
+
+// Toast
+function showToast(msg, type='success') {
+  const tc = document.getElementById('toast-container');
+  const t  = document.createElement('div');
+  t.className = `toast toast-${type}`; t.textContent = msg; tc.appendChild(t);
+  requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3000);
+}
+
+// Toggle preference button
+function togglePref(btn) {
+  const cat = btn.dataset.cat;
+  if (selectedPrefs.includes(cat)) {
+    selectedPrefs = selectedPrefs.filter(p => p !== cat);
+    btn.classList.remove('active');
+  } else {
+    selectedPrefs.push(cat);
+    btn.classList.add('active');
+  }
+  const el = document.getElementById('pref-count');
+  el.textContent = selectedPrefs.length
+    ? selectedPrefs.length + ' selected: ' + selectedPrefs.join(', ')
+    : '0 selected';
+}
+
+// Locations
+function addLocation() {
+  const input = document.getElementById('loc-input');
+  const val   = input.value.trim();
+  if (!val) return;
+  if (locations.includes(val)) { showToast('Already added', 'error'); return; }
+  locations.push(val);
+  input.value = '';
+  renderChips();
+}
+
+document.getElementById('loc-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addLocation();
+});
+
+function renderChips() {
+  const area = document.getElementById('loc-chips');
+  area.innerHTML = '';
+  if (!locations.length) {
+    area.innerHTML = '<span style="font-size:0.68rem;color:rgba(100,130,190,0.35);letter-spacing:0.08em;">No locations added yet</span>';
+    return;
+  }
+  locations.forEach(loc => {
+    const chip = document.createElement('span');
+    chip.className = 'tag tag-removable';
+    chip.innerHTML = loc + ' <span style="opacity:0.5;font-size:0.8em;">✕</span>';
+    chip.onclick = () => { locations = locations.filter(l => l !== loc); renderChips(); };
+    area.appendChild(chip);
+  });
+}
+
+// Save
+async function saveProfile() {
+  const btn = document.getElementById('save-btn');
+  btn.innerHTML = '<span class="spinner"></span>';
+  btn.disabled  = true;
+  try {
+    await api.updateProfile({ preferences: selectedPrefs, locations });
+    showToast('Preferences saved!', 'success');
+    document.getElementById('info-banner').style.display = 'block';
+  } catch(e) {
+    showToast(e.message, 'error');
+  } finally {
+    btn.innerHTML = 'Save Preferences';
+    btn.disabled  = false;
+  }
+}
+
+function handleLogout() {
+  api.logout();
+  window.location.href = '../index.html';
+}
+
+// Render category buttons dynamically from DB
+function renderCategoryButtons(cats, savedPrefs) {
+  const grid = document.getElementById('cat-grid');
+  grid.innerHTML = '';
+  if (!cats || !cats.length) {
+    grid.innerHTML = '<span style="font-size:0.68rem;color:rgba(100,130,190,0.35);">No categories found.</span>';
+    return;
+  }
+  cats.forEach(catName => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn';
+    btn.dataset.cat = catName;
+    btn.textContent = catName;
+    btn.onclick = function() { togglePref(this); };
+    if (savedPrefs.includes(catName)) btn.classList.add('active');
+    grid.appendChild(btn);
+  });
+}
+
+// Load categories and saved preferences
+(async () => {
+  try {
+    // Load all categories from DB first
+    const cats = await api.loadCategories();
+
+    // Try to load the donor's saved profile
+    let savedPrefs = [];
+    let savedLocs  = [];
+    try {
+      const profile = await api.getProfile();
+      savedPrefs    = profile.preferences || [];
+      savedLocs     = profile.locations   || [];
+    } catch(e) {
+      // New donor with no profile yet — still render categories
+    }
+
+    selectedPrefs = savedPrefs;
+    locations     = savedLocs;
+
+    renderCategoryButtons(cats, savedPrefs);
+
+    const el = document.getElementById('pref-count');
+    el.textContent = selectedPrefs.length
+      ? selectedPrefs.length + ' selected: ' + selectedPrefs.join(', ')
+      : '0 selected';
+
+    renderChips();
+    if (selectedPrefs.length || locations.length) {
+      document.getElementById('info-banner').style.display = 'block';
+    }
+  } catch(e) {
+    console.error('Profile load error:', e);
+    renderCategoryButtons([], []);
+    renderChips();
+  }
+})();
+</script>
+</body>
+</html>

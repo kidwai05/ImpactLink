@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — ImpactLink</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <style>
+        canvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .page-shell {
+            position: relative;
+            z-index: 1;
+        }
+
+        .dash-hero {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            padding-bottom: 1.8rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(40,80,180,0.14);
+            animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.1s both;
+        }
+
+        .dash-title {
+            font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+            margin-bottom: 0.3rem;
+        }
+
+        .dash-sub {
+            margin-top: 0.4rem;
+        }
+
+        .stat-row {
+            display: flex;
+            gap: 1rem;
+            animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.2s both;
+            margin-bottom: 2rem;
+        }
+
+        .stat-box {
+            flex: 1;
+            background: linear-gradient(145deg, rgba(10,20,50,0.6), rgba(6,12,30,0.6));
+            border: 1px solid rgba(40,80,180,0.20);
+            border-radius: 10px;
+            padding: 1rem 1.2rem;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+
+            .stat-box:hover {
+                border-color: rgba(60,130,240,0.40);
+            }
+
+        .stat-num {
+            font-family: var(--font-display);
+            font-size: 1.7rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+            text-shadow: 0 0 12px rgba(122,171,238,0.5);
+        }
+
+        .stat-label {
+            font-family: var(--font-body);
+            font-size: 0.62rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.4rem;
+            animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.3s both;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            font-weight: 400;
+            letter-spacing: 0.14em;
+            color: var(--text-primary);
+            text-shadow: 0 0 8px rgba(255,255,255,0.4);
+        }
+
+        /* divider for "other orgs" section */
+        .other-divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 3rem 0 1.6rem;
+            animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.3s both;
+        }
+
+        .other-divider-line {
+            flex: 1;
+            height: 1px;
+            background: rgba(40,80,180,0.18);
+        }
+
+        .other-divider-text {
+            font-family: var(--font-body);
+            font-size: 0.65rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .ngo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.2rem;
+        }
+
+        .ngo-card {
+            background: linear-gradient(145deg, #0d0e1f, #080a18);
+            border: 1px solid rgba(40,80,180,0.25);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+            animation: cardRise 0.75s cubic-bezier(0.22,1,0.36,1) both;
+        }
+
+            .ngo-card:hover {
+                border-color: rgba(80,140,240,0.55);
+                box-shadow: 0 0 30px rgba(30,80,200,0.12), 0 8px 30px rgba(0,0,0,0.3);
+                transform: translateY(-3px);
+            }
+            /* other orgs cards are slightly more muted */
+            .ngo-card.other {
+                border-color: rgba(40,80,180,0.14);
+                opacity: 0.75;
+            }
+
+                .ngo-card.other:hover {
+                    opacity: 1;
+                }
+
+        .ngo-top {
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+        }
+
+        .ngo-logo {
+            font-size: 1.8rem;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(20,40,90,0.25);
+            border: 1px solid rgba(40,80,180,0.22);
+            border-radius: 10px;
+            flex-shrink: 0;
+        }
+
+        .ngo-name {
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            color: var(--text-primary);
+            line-height: 1.3;
+        }
+
+        .ngo-location {
+            font-family: var(--font-body);
+            font-size: 0.65rem;
+            letter-spacing: 0.10em;
+            color: var(--text-muted);
+            margin-top: 0.15rem;
+        }
+
+        .ngo-desc {
+            font-family: var(--font-body);
+            font-size: 0.76rem;
+            color: var(--text-body);
+            line-height: 1.55;
+            letter-spacing: 0.02em;
+        }
+
+        .ngo-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid rgba(40,80,180,0.12);
+            padding-top: 0.8rem;
+        }
+
+        .ngo-stats {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .ngo-stat {
+            text-align: center;
+        }
+
+        .ngo-stat-num {
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            color: rgba(170,200,245,0.8);
+        }
+
+        .ngo-stat-lbl {
+            font-size: 0.55rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .match-badge {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .match-score {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+            text-shadow: 0 0 10px rgba(122,171,238,0.5);
+            line-height: 1;
+        }
+
+        .match-label {
+            font-size: 0.55rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .donate-btn {
+            width: 100%;
+            font-family: var(--font-body);
+            font-size: 0.65rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--accent-blue);
+            background: transparent;
+            border: 1px solid rgba(50,110,210,0.35);
+            padding: 0.65rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+
+            .donate-btn:hover {
+                background: rgba(30,70,180,0.14);
+                border-color: rgba(80,150,240,0.75);
+                color: #d0e4ff;
+            }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.3s both;
+        }
+
+        .empty-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            font-weight: 400;
+            letter-spacing: 0.14em;
+            color: var(--text-primary);
+            margin-bottom: 0.6rem;
+            opacity: 0.8;
+        }
+
+        .empty-sub {
+            font-size: 0.76rem;
+            color: var(--text-muted);
+            margin-bottom: 1.8rem;
+            line-height: 1.6;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+            .modal-overlay.open {
+                opacity: 1;
+                pointer-events: all;
+            }
+
+        .modal-box {
+            background: linear-gradient(145deg, #080c1e, #050810);
+            border: 1px solid rgba(50,110,210,0.40);
+            border-radius: 14px;
+            padding: 2.2rem;
+            width: 100%;
+            max-width: 380px;
+            transform: translateY(20px);
+            transition: transform 0.4s cubic-bezier(0.22,1,0.36,1);
+            box-shadow: 0 0 60px rgba(20,60,180,0.18);
+        }
+
+        .modal-overlay.open .modal-box {
+            transform: translateY(0);
+        }
+
+        .modal-title {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            font-weight: 400;
+            letter-spacing: 0.14em;
+            color: var(--text-primary);
+            margin-bottom: 0.3rem;
+            text-shadow: 0 0 10px rgba(255,255,255,0.6);
+        }
+
+        .modal-sub {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            letter-spacing: 0.12em;
+            margin-bottom: 1.6rem;
+        }
+
+        .amount-grid {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .amount-btn {
+            font-family: var(--font-body);
+            font-size: 0.72rem;
+            letter-spacing: 0.10em;
+            padding: 0.5rem 0.9rem;
+            border: 1px solid rgba(50,100,200,0.25);
+            border-radius: 4px;
+            background: rgba(15,25,60,0.3);
+            color: rgba(140,175,235,0.7);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+            .amount-btn:hover, .amount-btn.active {
+                border-color: rgba(80,150,240,0.60);
+                background: rgba(30,60,160,0.18);
+                color: var(--accent-blue);
+            }
+
+        .modal-actions {
+            display: flex;
+            gap: 0.6rem;
+            margin-top: 1.4rem;
+        }
+
+        .modal-cancel {
+            font-family: var(--font-body);
+            font-size: 0.68rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            background: transparent;
+            border: 1px solid rgba(60,80,140,0.22);
+            padding: 0.75rem 1.2rem;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+            .modal-cancel:hover {
+                border-color: rgba(80,100,180,0.4);
+                color: rgba(180,200,235,0.7);
+            }
+
+        .loading-shimmer {
+            background: linear-gradient(90deg, rgba(20,35,90,0.2) 25%, rgba(30,55,140,0.3) 50%, rgba(20,35,90,0.2) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+            height: 200px;
+        }
+
+        @keyframes shimmer {
+            to {
+                background-position: -200% 0;
+            }
+        }
+
+        .modal-need-item {
+            border: 1px solid rgba(50,100,200,0.22);
+            border-radius: 8px;
+            padding: 0.9rem 1rem;
+            margin-bottom: 0.6rem;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            background: rgba(10,15,40,0.30);
+        }
+
+            .modal-need-item:hover {
+                border-color: rgba(80,150,240,0.55);
+                background: rgba(20,40,90,0.18);
+            }
+
+            .modal-need-item.selected {
+                border-color: rgba(80,150,240,0.80);
+                background: rgba(25,55,130,0.22);
+            }
+
+        .modal-need-title {
+            font-family: var(--font-display);
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: 0.08em;
+        }
+
+        .modal-need-desc {
+            font-size: 0.70rem;
+            color: var(--text-body);
+            margin-top: 0.25rem;
+            line-height: 1.45;
+        }
+
+        .modal-need-meta {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.4rem;
+        }
+
+        .modal-need-tag {
+            font-size: 0.56rem;
+            letter-spacing: 0.10em;
+            text-transform: uppercase;
+            padding: 0.15rem 0.45rem;
+            border-radius: 3px;
+        }
+
+        .tag-urgency-high {
+            color: rgba(240,130,130,0.85);
+            border: 1px solid rgba(200,70,70,0.30);
+            background: rgba(100,15,15,0.15);
+        }
+
+        .tag-urgency-medium {
+            color: rgba(240,200,100,0.85);
+            border: 1px solid rgba(200,160,50,0.30);
+            background: rgba(80,60,10,0.15);
+        }
+
+        .tag-urgency-low {
+            color: rgba(120,220,150,0.85);
+            border: 1px solid rgba(60,180,100,0.30);
+            background: rgba(20,80,45,0.15);
+        }
+
+        .modal-need-progress {
+            margin-top: 0.5rem;
+        }
+
+        .modal-need-progress-bar {
+            height: 3px;
+            background: rgba(40,80,180,0.15);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 0.2rem;
+        }
+
+        .modal-need-progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, var(--accent-blue), rgba(122,171,238,0.5));
+            transition: width 0.6s;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="c"></canvas>
+
+    <div class="page-shell">
+        <nav class="nav">
+            <a href="../index.html" class="nav-logo">ImpactLink</a>
+            <div class="nav-links">
+                <a href="profile.html" class="nav-link">Profile</a>
+                <a href="dashboard.html" class="nav-link active">Dashboard</a>
+                <a href="donations.html" class="nav-link">Donations</a>
+                <button class="nav-link logout" onclick="handleLogout()">Logout</button>
+            </div>
+        </nav>
+
+        <div class="page-content">
+            <div class="dash-hero">
+                <div class="dash-hero-left">
+                    <div class="display-heading dash-title" id="greeting">Dashboard</div>
+                    <div class="sub-heading dash-sub">Your matched NGOs, curated by impact</div>
+                </div>
+            </div>
+
+            <div class="stat-row">
+                <div class="stat-box"><div class="stat-num" id="s-matches">—</div><div class="stat-label">Matches</div></div>
+                <div class="stat-box"><div class="stat-num" id="s-donations">—</div><div class="stat-label">Donations Made</div></div>
+                <div class="stat-box"><div class="stat-num" id="s-total">—</div><div class="stat-label">Total Donated (PKR)</div></div>
+                <div class="stat-box"><div class="stat-num" id="s-prefs">—</div><div class="stat-label">Causes Followed</div></div>
+            </div>
+
+            <div class="section-header">
+                <div class="section-title">Matched Organizations</div>
+                <a href="profile.html" class="btn btn-primary btn-sm" style="text-decoration:none;">Edit Preferences</a>
+            </div>
+
+            <div id="ngo-area">
+                <div class="ngo-grid" id="skeleton-grid">
+                    <div class="loading-shimmer"></div>
+                    <div class="loading-shimmer"></div>
+                    <div class="loading-shimmer"></div>
+                </div>
+            </div>
+
+            <!-- Other organizations shown below matched ones -->
+            <div id="others-area" style="display:none;">
+                <div class="other-divider">
+                    <div class="other-divider-line"></div>
+                    <div class="other-divider-text">Other verified organizations you can support</div>
+                    <div class="other-divider-line"></div>
+                </div>
+                <div class="ngo-grid" id="others-grid"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Needs Modal -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal-box" style="max-width:480px;max-height:85vh;overflow-y:auto;">
+            <div class="modal-title" id="modal-org-name">View Needs</div>
+            <div class="modal-sub" id="modal-org-sub">Select a need to commit to</div>
+            <div class="glow-line" style="margin-bottom:1.2rem;"></div>
+            <div id="needs-modal-body">
+                <div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:0.76rem;">Loading needs…</div>
+            </div>
+            <!-- Contribution type (shown after a need is picked) -->
+            <div id="amount-section" style="display:none;margin-top:1rem;border-top:1px solid rgba(40,80,180,0.14);padding-top:1rem;">
+                <!-- Toggle: Amount vs Resource -->
+                <div style="display:flex;gap:0.5rem;margin-bottom:1rem;">
+                    <button id="toggle-amount" class="amount-btn active" style="flex:1;" onclick="setContribType('amount',this)">💰 Donate Amount</button>
+                    <button id="toggle-resource" class="amount-btn" style="flex:1;" onclick="setContribType('resource',this)">📦 Donate Resource</button>
+                </div>
+
+                <!-- Amount panel -->
+                <div id="panel-amount">
+                    <div style="font-size:0.62rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.7rem;">Donation Amount (PKR)</div>
+                    <div class="amount-grid">
+                        <button class="amount-btn" onclick="pickAmount(500,this)">500</button>
+                        <button class="amount-btn" onclick="pickAmount(1000,this)">1,000</button>
+                        <button class="amount-btn" onclick="pickAmount(2500,this)">2,500</button>
+                        <button class="amount-btn" onclick="pickAmount(5000,this)">5,000</button>
+                        <button class="amount-btn" onclick="pickAmount(10000,this)">10,000</button>
+                    </div>
+                    <div style="position:relative;margin-top:0.5rem;">
+                        <span style="position:absolute;left:0.9rem;top:50%;transform:translateY(-50%);font-size:0.72rem;color:var(--text-muted);pointer-events:none;">PKR</span>
+                        <input id="custom-amount" type="number" min="1" placeholder="Or enter custom amount"
+                               style="font-family:var(--font-body);font-size:0.88rem;color:var(--text-primary);background:rgba(10,16,40,0.70);border:1px solid rgba(40,80,180,0.22);border-radius:6px;padding:0.72rem 0.9rem 0.72rem 3.2rem;width:100%;outline:none;"
+                               oninput="clearAmountPresets()" />
+                    </div>
+                </div>
+
+                <!-- Resource panel -->
+                <div id="panel-resource" style="display:none;">
+                    <div style="font-size:0.62rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.7rem;">Describe the resource you're contributing</div>
+                    <textarea id="resource-desc" placeholder="e.g. 50 notebooks, 10 blankets, medical supplies…"
+                              style="font-family:var(--font-body);font-size:0.85rem;color:var(--text-primary);background:rgba(10,16,40,0.70);border:1px solid rgba(40,80,180,0.22);border-radius:6px;padding:0.72rem 0.9rem;width:100%;outline:none;resize:vertical;min-height:72px;line-height:1.5;"></textarea>
+                </div>
+            </div>
+            <div id="modal-error" class="error-text" style="display:none;margin-bottom:0.5rem;margin-top:0.5rem;"></div>
+            <div class="modal-actions" style="margin-top:0.8rem;">
+                <button class="modal-cancel" onclick="closeModal()">Close</button>
+                <button class="btn btn-primary" style="flex:1;display:none;" id="confirm-btn" onclick="confirmDonate()">Commit to Need</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="../js/api.js"></script>
+    <script>
+        const canvas = document.getElementById('c');
+        const ctx = canvas.getContext('2d');
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        resize(); window.addEventListener('resize', resize);
+        const ARCS = [
+            { a0: 3.9, a1: 5.5, r: 0.44, lw: 90, alpha: 0.06, blur: 55, color: '20,55,160' },
+            { a0: 3.95, a1: 5.45, r: 0.43, lw: 35, alpha: 0.11, blur: 28, color: '30,75,190' },
+            { a0: 4.0, a1: 5.4, r: 0.42, lw: 9, alpha: 0.32, blur: 6, color: '55,115,230' },
+            { a0: 0.8, a1: 2.4, r: 0.38, lw: 80, alpha: 0.05, blur: 50, color: '15,45,150' },
+            { a0: 0.9, a1: 2.3, r: 0.36, lw: 8, alpha: 0.28, blur: 6, color: '50,105,220' },
+        ];
+        function drawSwirl() {
+            const W = canvas.width, H = canvas.height, cx = W * .5, cy = H * .5, b = Math.min(W, H);
+            ctx.clearRect(0, 0, W, H);
+            ARCS.forEach(a => {
+                ctx.save(); ctx.filter = `blur(${a.blur}px)`;
+                ctx.strokeStyle = `rgba(${a.color},${a.alpha})`;
+                ctx.lineWidth = a.lw; ctx.lineCap = 'round';
+                ctx.beginPath(); ctx.arc(cx, cy, a.r * b, a.a0, a.a1); ctx.stroke(); ctx.restore();
+            });
+        }
+        drawSwirl();
+
+        //const session = api.requireAuth(); if (!session) throw 0;
+        const session = JSON.parse(localStorage.getItem('il_user') || localStorage.getItem('impactlink_session') || 'null');
+        if (!session || session.role !== 'donor') { window.location.href = '../pages/login.html'; }
+
+        function showToast(msg, type = 'success') {
+            const tc = document.getElementById('toast-container');
+            const t = document.createElement('div');
+            t.className = `toast toast-${type}`; t.textContent = msg; tc.appendChild(t);
+            requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
+            setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3000);
+        }
+        function handleLogout() { api.logout(); window.location.href = '../index.html'; }
+
+        let currentNgo = null;
+        let selectedNeedId = null;
+        let selectedAmount = null;
+        let contribType = 'amount'; // 'amount' | 'resource'
+
+        function setContribType(type, btn) {
+            contribType = type;
+            document.querySelectorAll('#toggle-amount,#toggle-resource').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('panel-amount').style.display = type === 'amount' ? 'block' : 'none';
+            document.getElementById('panel-resource').style.display = type === 'resource' ? 'block' : 'none';
+            document.getElementById('modal-error').style.display = 'none';
+        }
+
+        async function openNeedsModal(ngo) {
+            currentNgo = ngo;
+            selectedNeedId = null;
+            contribType = 'amount';
+            document.getElementById('toggle-amount').classList.add('active');
+            document.getElementById('toggle-resource').classList.remove('active');
+            document.getElementById('panel-amount').style.display = 'block';
+            document.getElementById('panel-resource').style.display = 'none';
+            document.getElementById('modal-org-name').textContent = ngo.name;
+            document.getElementById('modal-org-sub').textContent = ngo.category + ' · ' + ngo.location;
+            document.getElementById('modal-error').style.display = 'none';
+            document.getElementById('confirm-btn').style.display = 'none';
+            document.getElementById('amount-section').style.display = 'none';
+            document.getElementById('custom-amount').value = '';
+            selectedAmount = null;
+            document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('needs-modal-body').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:0.76rem;">Loading open needs…</div>';
+            document.getElementById('modal').classList.add('open');
+
+            try {
+                const needs = await api.getNgoOpenNeeds(ngo.id);
+                if (!needs.length) {
+                    document.getElementById('needs-modal-body').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:0.76rem;">No open needs at the moment.</div>';
+                    return;
+                }
+                const urgencyClass = { high: 'tag-urgency-high', medium: 'tag-urgency-medium', low: 'tag-urgency-low' };
+                document.getElementById('needs-modal-body').innerHTML = needs.map(n => {
+                    const pct = n.quantity > 0 ? Math.min(100, Math.round(n.pledged / n.quantity * 100)) : 0;
+                    return `<div class="modal-need-item" id="need-item-${n.id}" onclick="selectNeed(${n.id}, this)">
+            <div class="modal-need-title">${n.title}</div>
+            ${n.description ? '<div class="modal-need-desc">' + n.description + '</div>' : ''}
+            <div class="modal-need-meta">
+              <span class="modal-need-tag ${urgencyClass[n.urgency] || 'tag-urgency-medium'}">${n.urgency}</span>
+              <span class="modal-need-tag" style="color:rgba(150,185,240,0.70);border:1px solid rgba(40,80,180,0.22);background:rgba(15,35,90,0.18);">${n.category}</span>
+              <span class="modal-need-tag" style="color:var(--text-muted);border:1px solid rgba(40,80,180,0.14);">Qty: ${n.quantity}</span>
+            </div>
+            <div class="modal-need-progress">
+              <div style="font-size:0.58rem;color:var(--text-muted);letter-spacing:0.08em;">${n.pledged} / ${n.quantity} committed · ${pct}%</div>
+              <div class="modal-need-progress-bar"><div class="modal-need-progress-fill" style="width:${pct}%"></div></div>
+            </div>
+          </div>`;
+                }).join('');
+            } catch (e) {
+                document.getElementById('needs-modal-body').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:0.76rem;">Failed to load needs.</div>';
+            }
+        }
+
+        function selectNeed(needId, el) {
+            selectedNeedId = needId;
+            document.querySelectorAll('.modal-need-item').forEach(e => e.classList.remove('selected'));
+            el.classList.add('selected');
+            document.getElementById('confirm-btn').style.display = 'flex';
+            document.getElementById('amount-section').style.display = 'block';
+            document.getElementById('modal-error').style.display = 'none';
+        }
+
+        function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+        function pickAmount(val, btn) {
+            selectedAmount = val;
+            document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('custom-amount').value = '';
+        }
+        function clearAmountPresets() {
+            selectedAmount = null;
+            document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('active'));
+        }
+
+        async function confirmDonate() {
+            const errEl = document.getElementById('modal-error');
+            errEl.style.display = 'none';
+            if (!selectedNeedId) {
+                errEl.textContent = 'Please select a need to commit to.';
+                errEl.style.display = 'block'; return;
+            }
+
+            let amount = 0;
+            let itemDescription = '';
+
+            if (contribType === 'amount') {
+                const customVal = parseFloat(document.getElementById('custom-amount').value);
+                amount = selectedAmount || (customVal > 0 ? customVal : 0);
+                if (!amount) {
+                    errEl.textContent = 'Please select or enter a donation amount.';
+                    errEl.style.display = 'block'; return;
+                }
+            } else {
+                itemDescription = document.getElementById('resource-desc').value.trim();
+                if (!itemDescription) {
+                    errEl.textContent = 'Please describe the resource you are contributing.';
+                    errEl.style.display = 'block'; return;
+                }
+            }
+
+            const btn = document.getElementById('confirm-btn');
+            btn.innerHTML = '<span class="spinner"></span>'; btn.disabled = true;
+            try {
+                await api.addDonation({ org: currentNgo.name, need_id: selectedNeedId, amount, item_description: itemDescription });
+                closeModal();
+                showToast('Committed to need at ' + currentNgo.name + '!', 'success');
+                loadStats();
+            } catch (e) {
+                errEl.textContent = e.message; errEl.style.display = 'block';
+            } finally {
+                btn.innerHTML = 'Commit to Need'; btn.disabled = false;
+            }
+        }
+        document.getElementById('modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+
+        function buildCard(ngo, i, isOther = false) {
+            const card = document.createElement('div');
+            card.className = 'ngo-card' + (isOther ? ' other' : '');
+            card.style.animationDelay = (0.05 + i * 0.07) + 's';
+            const raised = (ngo.raised / 1000).toFixed(0) + 'K';
+            card.innerHTML = `
+        <div class="ngo-top">
+          <div class="ngo-logo">${ngo.logo}</div>
+          <div>
+            <div class="ngo-name">${ngo.name}</div>
+            <div class="ngo-location">📍 ${ngo.location} &nbsp;·&nbsp; <span class="tag tag-purple" style="display:inline;padding:0.15rem 0.45rem;font-size:0.58rem;">${ngo.category}</span></div>
+          </div>
+        </div>
+        <div class="ngo-desc">${ngo.description}</div>
+        <div class="ngo-meta">
+          <div class="ngo-stats">
+            <div class="ngo-stat"><div class="ngo-stat-num">${ngo.donors}</div><div class="ngo-stat-lbl">Donors</div></div>
+            <div class="ngo-stat"><div class="ngo-stat-num">PKR ${raised}</div><div class="ngo-stat-lbl">Raised</div></div>
+          </div>
+          <div class="match-badge">
+            <div class="match-score">${ngo.score !== null ? ngo.score + '%' : '—'}</div>
+            <div class="match-label">Match</div>
+          </div>
+        </div>
+        <button class="donate-btn" onclick='openNeedsModal(${JSON.stringify(ngo)})'>Donate Now</button>`;
+            return card;
+        }
+
+        function renderNGOs(matched, others) {
+            const area = document.getElementById('ngo-area');
+
+            if (!matched.length && !others.length) {
+                area.innerHTML = `<div class="empty-state"><div class="empty-icon">✦</div><div class="empty-title">No Matches Yet</div><div class="empty-sub">Add your cause preferences and locations on your profile<br>and we'll match you with NGOs that fit your values.</div><a href="profile.html" class="btn btn-purple" style="text-decoration:none;">Set Up Profile</a></div>`;
+                return;
+            }
+
+            // Matched section
+            if (matched.length) {
+                const grid = document.createElement('div');
+                grid.className = 'ngo-grid';
+                matched.forEach((ngo, i) => grid.appendChild(buildCard(ngo, i, false)));
+                area.innerHTML = '';
+                area.appendChild(grid);
+            } else {
+                area.innerHTML = `<div class="empty-state"><div class="empty-icon">✦</div><div class="empty-title">No Direct Matches</div><div class="empty-sub">None of the current NGOs match your preferences exactly.<br>Browse other organizations below or <a href="profile.html" style="color:var(--accent-blue);">update your profile</a>.</div></div>`;
+            }
+
+            // Others section
+            if (others.length) {
+                const othersArea = document.getElementById('others-area');
+                const othersGrid = document.getElementById('others-grid');
+                othersGrid.innerHTML = '';
+                others.forEach((ngo, i) => othersGrid.appendChild(buildCard(ngo, i, true)));
+                othersArea.style.display = 'block';
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const [donations, profile] = await Promise.all([api.getDonations(), api.getProfile()]);
+                document.getElementById('s-donations').textContent = donations.length;
+                const total = donations.reduce((s, d) => s + d.amount, 0);
+                document.getElementById('s-total').textContent = total >= 1000 ? (total / 1000).toFixed(0) + 'K' : total;
+                document.getElementById('s-prefs').textContent = (profile.preferences || []).length;
+            } catch (e) { }
+        }
+
+        (async () => {
+            document.getElementById('greeting').textContent = 'Welcome, ' + session.name;
+            try {
+                const { matched, others, hasProfile } = await api.getMatches();
+                document.getElementById('s-matches').textContent = matched.length;
+                renderNGOs(matched, others);
+            } catch (e) {
+                document.getElementById('ngo-area').innerHTML = `<div class="empty-state"><div class="empty-sub">Failed to load matches. Please try again.</div></div>`;
+            }
+            loadStats();
+        })();
+    </script>
+</body>
+</html>

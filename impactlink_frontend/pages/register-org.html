@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Register Organization — ImpactLink</title>
+<link rel="stylesheet" href="../css/theme.css"/>
+<style>
+body { display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow-x: hidden; padding: 2rem 1rem; }
+canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+
+.form-shell {
+  position: relative; z-index: 10;
+  width: 100%; max-width: 480px;
+  animation: fadeUp 0.9s cubic-bezier(0.22,1,0.36,1) 0.2s both;
+}
+
+.back-link {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-family: var(--font-body); font-size: 0.65rem; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--text-muted); text-decoration: none; margin-bottom: 1.8rem; transition: color 0.2s;
+}
+.back-link:hover { color: var(--accent-blue); }
+
+.form-card {
+  background: linear-gradient(145deg, #0d0620, #070415);
+  border: 1px solid rgba(120,60,200,0.38);
+  border-radius: 14px;
+  padding: 2.6rem 2.4rem;
+  box-shadow: 0 0 60px rgba(80,20,180,0.12), 0 0 120px rgba(60,10,150,0.06);
+  transition: border-color 0.4s;
+}
+.form-card:hover { border-color: rgba(150,80,240,0.55); }
+
+.card-icon {
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 1px solid rgba(140,60,220,0.45);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 1.4rem; font-size: 1.1rem; color: var(--accent-purple);
+}
+.form-title {
+  font-family: var(--font-display);
+  font-size: 2rem; font-weight: 400; letter-spacing: 0.16em; color: var(--text-primary);
+  text-shadow: 0 0 10px rgba(255,255,255,0.6), 0 0 28px rgba(200,170,255,0.3);
+  margin-bottom: 0.3rem;
+}
+.form-sub { color: var(--text-muted); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 2rem; }
+.glow-line-purple {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(140,60,220,0.5), transparent);
+  margin-bottom: 2rem;
+}
+
+/* Two-col grid for some fields */
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+/* Select field */
+.input-field select, select.input-field {
+  font-family: var(--font-body); font-size: 0.85rem; color: var(--text-primary);
+  background: rgba(10,6,26,0.80);
+  border: 1px solid rgba(100,50,200,0.25);
+  border-radius: 4px; padding: 0.75rem 1rem;
+  outline: none; width: 100%;
+  transition: border-color 0.25s, box-shadow 0.25s;
+  -webkit-appearance: none; appearance: none;
+  cursor: pointer;
+}
+select.input-field option { background: #0d0620; }
+select.input-field:focus { border-color: rgba(140,80,240,0.65); box-shadow: 0 0 0 3px rgba(100,40,200,0.08); }
+
+.input-field:focus { border-color: rgba(140,80,240,0.65) !important; box-shadow: 0 0 0 3px rgba(100,40,200,0.08) !important; }
+
+textarea.input-field { resize: vertical; min-height: 90px; line-height: 1.6; }
+
+/* Strength bar */
+.strength-bar { height: 2px; background: rgba(80,30,150,0.18); border-radius: 2px; margin-top: 0.4rem; overflow: hidden; }
+.strength-fill { height: 100%; border-radius: 2px; transition: width 0.35s, background 0.35s; width: 0%; }
+.strength-label { font-size: 0.60rem; letter-spacing: 0.08em; color: var(--text-muted); margin-top: 0.2rem; }
+
+.btn-org {
+  font-family: var(--font-body); font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--accent-purple); background: transparent;
+  border: 1px solid rgba(140,70,220,0.45); padding: 0.9rem;
+  width: 100%; border-radius: 2px; cursor: pointer;
+  transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+}
+.btn-org:hover {
+  background: rgba(100,40,180,0.15); border-color: rgba(160,90,240,0.8);
+  color: #e0d0ff; box-shadow: 0 0 20px rgba(100,40,200,0.15);
+}
+.btn-org:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.bottom-link { text-align: center; margin-top: 1.4rem; font-size: 0.70rem; color: var(--text-muted); letter-spacing: 0.06em; }
+.bottom-link a { color: var(--accent-purple); text-decoration: none; transition: text-shadow 0.2s; }
+.bottom-link a:hover { text-shadow: 0 0 8px rgba(200,168,240,0.5); }
+
+/* Steps indicator */
+.steps {
+  display: flex; align-items: center; gap: 0; margin-bottom: 2rem;
+}
+.step-dot {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 1px solid rgba(140,60,220,0.35);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 0.75rem;
+  color: var(--text-muted); transition: all 0.3s; flex-shrink: 0;
+}
+.step-dot.active { border-color: rgba(160,90,240,0.8); color: var(--accent-purple); background: rgba(100,40,180,0.12); }
+.step-dot.done { border-color: rgba(60,180,100,0.5); color: rgba(100,210,140,0.85); background: rgba(20,80,45,0.12); }
+.step-line { flex: 1; height: 1px; background: rgba(120,60,200,0.18); }
+
+.step-section { display: none; }
+.step-section.active { display: block; }
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<div class="form-shell">
+  <a href="../index.html" class="back-link">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2L4 6l4 4"/></svg>
+    Back
+  </a>
+
+  <div class="form-card">
+    <div class="card-icon">&#9670;</div>
+    <div class="form-title">Register NGO</div>
+    <div class="form-sub">Join ImpactLink as an Organization</div>
+    <div class="glow-line-purple"></div>
+
+    <!-- Step indicators -->
+    <div class="steps" id="steps">
+      <div class="step-dot active" id="s1">1</div>
+      <div class="step-line"></div>
+      <div class="step-dot" id="s2">2</div>
+      <div class="step-line"></div>
+      <div class="step-dot" id="s3">3</div>
+      <div class="step-line"></div>
+      <div class="step-dot" id="s4">4</div>
+    </div>
+
+    <div id="error-msg" class="error-text" style="display:none;margin-bottom:1rem;"></div>
+
+    <!-- Step 1: Account -->
+    <div class="step-section active" id="step-1">
+      <div class="input-group">
+        <label class="input-label">Organization Name</label>
+        <input class="input-field" id="orgName" type="text" placeholder="e.g. Green Earth Pakistan" autocomplete="organization"/>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Official Email</label>
+        <input class="input-field" id="email" type="email" placeholder="contact@yourorg.org" autocomplete="email"/>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Password</label>
+        <input class="input-field" id="password" type="password" placeholder="Create a strong password"/>
+        <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+        <div class="strength-label" id="strength-label"></div>
+      </div>
+      <button class="btn-org" onclick="nextStep(1)">Continue &rarr;</button>
+    </div>
+
+    <!-- Step 2: Organization Details -->
+    <div class="step-section" id="step-2">
+      <div class="field-row">
+        <div class="input-group">
+          <label class="input-label">Category / Cause</label>
+          <select class="input-field" id="category">
+            <option value="">Select cause…</option>
+            <option>Education</option>
+            <option>Health</option>
+            <option>Environment</option>
+            <option>Poverty</option>
+            <option>Women</option>
+            <option>Children</option>
+            <option>Disaster</option>
+            <option>Animals</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Primary City</label>
+          <select class="input-field" id="city">
+            <option value="">Select city…</option>
+            <option>Karachi</option>
+            <option>Lahore</option>
+            <option>Islamabad</option>
+            <option>Peshawar</option>
+            <option>Quetta</option>
+            <option>Multan</option>
+            <option>Faisalabad</option>
+            <option>Rawalpindi</option>
+          </select>
+        </div>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Phone / WhatsApp</label>
+        <input class="input-field" id="phone" type="tel" placeholder="+92 3xx xxxxxxx"/>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Mission Statement</label>
+        <textarea class="input-field" id="mission" placeholder="Describe your organization's mission and impact in 2–3 sentences…"></textarea>
+      </div>
+      <div style="display:flex;gap:0.6rem;">
+        <button class="btn-org" style="flex:0 0 auto;padding:0.9rem 1.4rem;" onclick="prevStep(2)">&larr;</button>
+        <button class="btn-org" style="flex:1;" onclick="nextStep(2)">Continue &rarr;</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Documents -->
+    <div class="step-section" id="step-3">
+      <div style="font-family:var(--font-body);font-size:0.68rem;letter-spacing:0.12em;color:var(--text-muted);margin-bottom:1rem;">
+        Upload supporting documents for verification (optional but recommended)
+      </div>
+      <div class="input-group">
+        <label class="input-label">Registration Certificate</label>
+        <input class="input-field" id="doc-reg" type="file" accept=".pdf,.jpg,.jpeg,.png" style="cursor:pointer;padding:0.6rem 1rem;"/>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Tax Exemption / SECP Certificate</label>
+        <input class="input-field" id="doc-tax" type="file" accept=".pdf,.jpg,.jpeg,.png" style="cursor:pointer;padding:0.6rem 1rem;"/>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Identity Document of Authorized Person</label>
+        <input class="input-field" id="doc-id" type="file" accept=".pdf,.jpg,.jpeg,.png" style="cursor:pointer;padding:0.6rem 1rem;"/>
+      </div>
+      <div id="doc-list" style="margin-top:0.8rem;font-size:0.70rem;color:var(--text-muted);min-height:1.2rem;"></div>
+      <div style="display:flex;gap:0.6rem;margin-top:0.6rem;">
+        <button class="btn-org" style="flex:0 0 auto;padding:0.9rem 1.4rem;" onclick="prevStep(3)">&larr;</button>
+        <button class="btn-org" style="flex:1;" onclick="nextStep(3)">Continue &rarr;</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Review & Submit -->
+    <div class="step-section" id="step-4">
+      <div id="review-content" style="margin-bottom:1.6rem;"></div>
+      <div style="display:flex;gap:0.6rem;">
+        <button class="btn-org" style="flex:0 0 auto;padding:0.9rem 1.4rem;" onclick="prevStep(4)">&larr;</button>
+        <button class="btn-org" style="flex:1;" id="submit-btn" onclick="handleRegister()">Create Account</button>
+      </div>
+    </div>
+
+    <div class="bottom-link">Already registered? <a href="login.html">Sign in as NGO</a></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script src="../js/api.js"></script>
+<script>
+// ── Background ─────────────────────────────────────────────────────────────
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resize(); window.addEventListener('resize', resize);
+const ARCS = [
+  {a0:3.9,a1:5.5,r:0.44,lw:90,alpha:0.07,blur:55,color:'80,20,180'},
+  {a0:3.95,a1:5.45,r:0.43,lw:35,alpha:0.13,blur:28,color:'100,30,200'},
+  {a0:4.0,a1:5.4,r:0.42,lw:9,alpha:0.35,blur:6,color:'140,70,240'},
+  {a0:0.8,a1:2.4,r:0.38,lw:80,alpha:0.05,blur:50,color:'60,15,160'},
+  {a0:0.9,a1:2.3,r:0.36,lw:8,alpha:0.28,blur:6,color:'120,50,220'},
+];
+(function drawSwirl(){
+  const W=canvas.width,H=canvas.height,cx=W*.5,cy=H*.5,b=Math.min(W,H);
+  ctx.clearRect(0,0,W,H);
+  ARCS.forEach(a=>{
+    ctx.save(); ctx.filter=`blur(${a.blur}px)`;
+    ctx.strokeStyle=`rgba(${a.color},${a.alpha})`;
+    ctx.lineWidth=a.lw; ctx.lineCap='round';
+    ctx.beginPath(); ctx.arc(cx,cy,a.r*b,a.a0,a.a1); ctx.stroke(); ctx.restore();
+  });
+})();
+
+// ── Password strength ──────────────────────────────────────────────────────
+document.getElementById('password').addEventListener('input', function() {
+  const v = this.value, fill = document.getElementById('strength-fill'), lbl = document.getElementById('strength-label');
+  let score = 0;
+  if (v.length >= 8) score++;
+  if (/[A-Z]/.test(v)) score++;
+  if (/[0-9]/.test(v)) score++;
+  if (/[^A-Za-z0-9]/.test(v)) score++;
+  const map = [
+    {w:'0%',c:'transparent',t:''},
+    {w:'25%',c:'rgba(220,80,80,0.7)',t:'Weak'},
+    {w:'50%',c:'rgba(220,160,60,0.7)',t:'Fair'},
+    {w:'75%',c:'rgba(80,180,220,0.7)',t:'Good'},
+    {w:'100%',c:'rgba(60,200,120,0.7)',t:'Strong'},
+  ];
+  fill.style.width = map[score].w; fill.style.background = map[score].c; lbl.textContent = map[score].t;
+});
+
+// ── Steps ─────────────────────────────────────────────────────────────────
+let currentStep = 1;
+
+function setStep(n) {
+  for (let i=1;i<=4;i++) {
+    document.getElementById('step-'+i).classList.toggle('active', i===n);
+    const dot = document.getElementById('s'+i);
+    dot.classList.remove('active','done');
+    if (i < n) dot.classList.add('done');
+    else if (i === n) dot.classList.add('active');
+  }
+  currentStep = n;
+}
+
+function nextStep(from) {
+  const err = document.getElementById('error-msg');
+  err.style.display = 'none';
+
+  if (from === 1) {
+    const name = document.getElementById('orgName').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const pw = document.getElementById('password').value;
+    if (!name || !email || !pw) { showErr('Please fill in all fields.'); return; }
+    if (pw.length < 6) { showErr('Password must be at least 6 characters.'); return; }
+    setStep(2);
+  } else if (from === 2) {
+    const cat = document.getElementById('category').value;
+    const city = document.getElementById('city').value;
+    const mission = document.getElementById('mission').value.trim();
+    if (!cat || !city) { showErr('Please select a category and city.'); return; }
+    if (!mission) { showErr('Please enter your mission statement.'); return; }
+    updateDocList();
+    setStep(3);
+  } else if (from === 3) {
+    buildReview();
+    setStep(4);
+  }
+}
+
+function prevStep(from) { setStep(from - 1); }
+
+function updateDocList() {
+  const docs = getSelectedDocs();
+  const el = document.getElementById('doc-list');
+  if (!docs.length) { el.textContent = 'No documents selected (you can add them later from your profile).'; return; }
+  el.innerHTML = docs.map(d => `✓ ${d.name} <span style="opacity:0.5;">(${d.type})</span>`).join('<br>');
+}
+
+function getSelectedDocs() {
+  const docs = [];
+  const slots = [
+    { id: 'doc-reg', type: 'registration' },
+    { id: 'doc-tax', type: 'tax' },
+    { id: 'doc-id',  type: 'identity' },
+  ];
+  for (const s of slots) {
+    const el = document.getElementById(s.id);
+    if (el.files && el.files[0]) docs.push({ name: el.files[0].name, type: s.type, file: el.files[0] });
+  }
+  return docs;
+}
+
+function buildReview() {
+  const docs = getSelectedDocs();
+  const fields = [
+    { label: 'Organization', value: document.getElementById('orgName').value },
+    { label: 'Email',        value: document.getElementById('email').value },
+    { label: 'Category',     value: document.getElementById('category').value },
+    { label: 'City',         value: document.getElementById('city').value },
+    { label: 'Phone',        value: document.getElementById('phone').value || '—' },
+    { label: 'Mission',      value: document.getElementById('mission').value },
+    { label: 'Documents',    value: docs.length ? docs.map(d=>d.name).join(', ') : 'None (can be added later)' },
+  ];
+  document.getElementById('review-content').innerHTML = `
+    <div style="font-family:var(--font-body);font-size:0.68rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-muted);margin-bottom:1rem;">Review your details</div>
+    ${fields.map(f => `
+      <div style="display:flex;gap:1rem;padding:0.65rem 0;border-bottom:1px solid rgba(120,60,200,0.10);">
+        <div style="flex:0 0 110px;font-size:0.63rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);padding-top:1px;">${f.label}</div>
+        <div style="flex:1;font-size:0.80rem;color:rgba(220,205,245,0.85);line-height:1.5;">${f.value}</div>
+      </div>`).join('')}`;
+}
+
+function showErr(msg) {
+  const e = document.getElementById('error-msg');
+  e.textContent = msg; e.style.display = 'block';
+}
+
+function showToast(msg, type='success') {
+  const tc=document.getElementById('toast-container');
+  const t=document.createElement('div');
+  t.className=`toast toast-${type}`; t.textContent=msg; tc.appendChild(t);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),400);},3200);
+}
+
+async function handleRegister() {
+  const btn = document.getElementById('submit-btn');
+  btn.innerHTML = '<span class="spinner"></span>'; btn.disabled = true;
+  try {
+    // 1. Register NGO (returns pending status)
+    await api.ngo.register({
+      orgName:  document.getElementById('orgName').value.trim(),
+      email:    document.getElementById('email').value.trim(),
+      password: document.getElementById('password').value,
+      category: document.getElementById('category').value,
+      city:     document.getElementById('city').value,
+      phone:    document.getElementById('phone').value.trim(),
+      mission:  document.getElementById('mission').value.trim(),
+    });
+
+    // 2. Login to get token so we can upload documents
+    const docs = getSelectedDocs();
+    if (docs.length) {
+      try {
+        // Temporarily authenticate to save documents
+        const loginRes = await fetch('http://localhost:3000/api/v1/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: document.getElementById('email').value.trim(),
+            password: document.getElementById('password').value,
+          })
+        });
+        const loginData = await loginRes.json();
+        if (loginData.success && loginData.token) {
+          for (const doc of docs) {
+            await fetch('http://localhost:3000/api/v1/ngos/documents', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + loginData.token },
+              body: JSON.stringify({ file_name: doc.name, doc_type: doc.type })
+            }).catch(() => {});
+          }
+        }
+      } catch(e) { /* document upload failing shouldn't block registration */ }
+    }
+
+    showToast('Organization registered! Pending admin review.', 'success');
+    setTimeout(() => { window.location.href = '../index.html'; }, 2000);
+  } catch(e) {
+    showErr(e.message);
+    btn.innerHTML = 'Create Account'; btn.disabled = false;
+  }
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Enter') { if (currentStep < 4) nextStep(currentStep); else handleRegister(); } });
+</script>
+</body>
+</html>

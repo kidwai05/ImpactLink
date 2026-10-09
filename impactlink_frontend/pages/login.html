@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sign In — ImpactLink</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+SC:wght@400;600;700&family=Raleway:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #020002;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Raleway', sans-serif;
+  padding: 2rem;
+}
+
+.bg-glow {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+}
+.bg-glow::before {
+  content: '';
+  position: absolute;
+  width: 600px; height: 600px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(30,70,200,0.10) 0%, transparent 70%);
+  top: -150px; left: -150px;
+}
+.bg-glow::after {
+  content: '';
+  position: absolute;
+  width: 500px; height: 500px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(80,30,180,0.08) 0%, transparent 70%);
+  bottom: -100px; right: -100px;
+}
+
+.form-shell {
+  position: relative; z-index: 10;
+  width: 100%; max-width: 420px;
+  animation: fadeUp 0.9s cubic-bezier(0.22,1,0.36,1) 0.15s both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.back-link {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-size: 0.65rem; letter-spacing: 0.16em; text-transform: uppercase;
+  color: rgba(150,180,235,0.45);
+  text-decoration: none; margin-bottom: 1.8rem;
+  transition: color 0.2s;
+}
+.back-link:hover { color: #7aabee; }
+.back-link svg { width: 12px; height: 12px; }
+
+.form-card {
+  background: linear-gradient(145deg, #070107, #040918);
+  border: 1px solid rgba(40,90,180,0.40);
+  border-radius: 12px;
+  padding: 2.4rem 2.2rem;
+  box-shadow: 0 0 20px rgba(30,80,200,0.18), 0 0 60px rgba(20,60,180,0.10);
+  transition: border-color 0.4s, box-shadow 0.4s;
+}
+.form-card:hover {
+  border-color: rgba(75,7,92,0.70);
+  box-shadow: 0 0 35px rgba(30,90,220,0.22), 0 0 80px rgba(20,60,200,0.12);
+}
+
+.card-icon {
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 1px solid rgba(82,10,66,0.80);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 1.4rem;
+  font-size: 1.1rem; color: #fa74ef;
+}
+
+.form-title {
+  font-family: 'Cormorant SC', serif;
+  font-size: 1.55rem; font-weight: 600;
+  letter-spacing: 0.12em; color: #7aabee;
+  margin-bottom: 0.5rem;
+}
+
+.form-sub {
+  font-size: 0.75rem; color: rgba(130,165,220,0.55);
+  letter-spacing: 0.08em; line-height: 1.6; margin-bottom: 1.8rem;
+}
+
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(50,100,200,0.25), transparent);
+  margin-bottom: 1.8rem;
+}
+
+/* ── Toggle tabs ── */
+.type-toggle {
+  display: flex; gap: 0; margin-bottom: 1.6rem;
+  border: 1px solid rgba(50,100,200,0.22);
+  border-radius: 4px; overflow: hidden;
+}
+.type-btn {
+  flex: 1;
+  font-family: 'Raleway', sans-serif;
+  font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase;
+  padding: 0.65rem 0.5rem;
+  background: transparent; border: none; cursor: pointer;
+  color: rgba(120,160,220,0.45);
+  transition: all 0.25s;
+}
+.type-btn:not(:last-child) { border-right: 1px solid rgba(50,100,200,0.22); }
+.type-btn.active {
+  background: rgba(30,70,180,0.18);
+  color: #7aabee;
+}
+.type-btn:hover:not(.active) { color: rgba(160,200,240,0.65); }
+
+/* ── Inputs ── */
+.input-group { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1.1rem; }
+
+.input-label {
+  font-size: 0.63rem; letter-spacing: 0.16em; text-transform: uppercase;
+  color: rgba(130,165,220,0.55);
+}
+
+.input-field {
+  font-family: 'Raleway', sans-serif;
+  font-size: 0.84rem; color: #d0e4ff;
+  background: rgba(6,10,26,0.80);
+  border: 1px solid rgba(50,100,200,0.22);
+  border-radius: 4px; padding: 0.72rem 0.95rem;
+  outline: none; width: 100%;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+.input-field::placeholder { color: rgba(80,110,170,0.35); }
+.input-field:focus {
+  border-color: rgba(60,130,240,0.65);
+  box-shadow: 0 0 0 3px rgba(30,80,200,0.08);
+}
+
+.error-text {
+  font-size: 0.70rem; letter-spacing: 0.05em;
+  color: rgba(240,130,130,0.85); margin-bottom: 0.8rem;
+}
+
+/* ── Button ── */
+.submit-btn {
+  font-family: 'Raleway', sans-serif;
+  font-size: 0.72rem; letter-spacing: 0.20em; text-transform: uppercase;
+  color: #7aabee; background: transparent;
+  border: 1px solid rgba(50,110,210,0.45);
+  padding: 0.85rem; width: 100%; border-radius: 2px;
+  cursor: pointer; transition: all 0.3s;
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+}
+.submit-btn:hover {
+  background: rgba(30,70,180,0.15);
+  border-color: rgba(80,150,240,0.80);
+  color: #d0e4ff;
+  box-shadow: 0 0 20px rgba(40,90,210,0.15);
+}
+.submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.bottom-link {
+  text-align: center; margin-top: 1.4rem;
+  font-size: 0.70rem; color: rgba(130,165,220,0.45); letter-spacing: 0.06em;
+  line-height: 2;
+}
+.bottom-link a {
+  color: #7aabee; text-decoration: none; transition: text-shadow 0.2s;
+}
+.bottom-link a:hover { text-shadow: 0 0 8px rgba(122,171,238,0.5); }
+.bottom-link .sep { margin: 0 0.4rem; color: rgba(80,110,170,0.30); }
+
+/* ── Spinner ── */
+.spinner {
+  width: 15px; height: 15px;
+  border: 1.5px solid rgba(80,130,220,0.20);
+  border-top-color: #7aabee;
+  border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Toast ── */
+.toast-container {
+  position: fixed; top: 1.5rem; right: 1.5rem; z-index: 999;
+  display: flex; flex-direction: column; gap: 0.5rem; pointer-events: none;
+}
+.toast {
+  font-size: 0.74rem; letter-spacing: 0.07em;
+  padding: 0.7rem 1.1rem; border-radius: 4px;
+  transform: translateX(110%); opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.22,1,0.36,1), opacity 0.3s;
+  pointer-events: all; max-width: 280px;
+}
+.toast.show { transform: translateX(0); opacity: 1; }
+.toast-success { background: rgba(8,22,12,0.96); border: 1px solid rgba(40,160,80,0.40); color: rgba(120,215,145,0.9); }
+.toast-error   { background: rgba(22,6,6,0.96);  border: 1px solid rgba(200,60,60,0.40);  color: rgba(240,145,145,0.9); }
+</style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+
+<div class="form-shell">
+  <a href="../index.html" class="back-link">
+    <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2L4 6l4 4"/></svg>
+    Back
+  </a>
+
+  <div class="form-card">
+    <div class="card-icon">&#10022;</div>
+    <div class="form-title">Sign In</div>
+    <p class="form-sub">Welcome back to ImpactLink.</p>
+    <div class="divider"></div>
+
+    <!-- Donor / NGO toggle -->
+    <div class="type-toggle">
+    <button class="type-btn active" id="tab-donor" onclick="setType('donor')">Donor</button>
+    <button class="type-btn"        id="tab-ngo"   onclick="setType('ngo')">Organization</button>
+    <button class="type-btn"        id="tab-admin" onclick="setType('admin')">Admin</button>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">Email Address</label>
+      <input class="input-field" id="email" type="email" placeholder="you@example.com" autocomplete="email"/>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">Password</label>
+      <input class="input-field" id="password" type="password" placeholder="Your password" autocomplete="current-password"/>
+    </div>
+
+    <div id="error-msg" class="error-text" style="display:none;"></div>
+
+    <button class="submit-btn" id="submit-btn" onclick="handleLogin()">Sign In</button>
+
+    <div class="bottom-link" id="bottom-links">
+      <!-- injected by setType() -->
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script src="../js/api.js"></script>
+<script>
+let loginType = 'donor'; // 'donor' | 'ngo' | 'admin'
+
+function setType(type) {
+  loginType = type;
+
+  document.getElementById('tab-donor').classList.toggle('active', type === 'donor');
+  document.getElementById('tab-ngo').classList.toggle('active',   type === 'ngo');
+  document.getElementById('tab-admin').classList.toggle('active', type === 'admin');
+
+  // Clear fields and errors on tab switch
+  document.getElementById('email').value = '';
+  document.getElementById('password').value = '';
+
+  // Swap bottom links
+  const links = document.getElementById('bottom-links');
+  if (type === 'donor') {
+  links.innerHTML = `
+    New here? <a href="register-donor.html">Create donor account</a>
+    <span class="sep">·</span>
+    <a href="register-org.html">Register as NGO</a>`;
+} else if (type === 'ngo') {
+  links.innerHTML = `
+    New organization? <a href="register-org.html">Register your NGO</a>
+    <span class="sep">·</span>
+    <a href="register-donor.html">Sign up as donor</a>`;
+} else {
+  links.innerHTML = `Platform administrator only.`;
+}
+
+  // Clear errors and fields on switch
+  document.getElementById('error-msg').style.display = 'none';
+}
+
+// Init bottom links
+setType('donor');
+
+function showToast(msg, type = 'success') {
+  const tc = document.getElementById('toast-container');
+  const t  = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  tc.appendChild(t);
+  requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3200);
+}
+
+async function handleLogin() {
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const errEl    = document.getElementById('error-msg');
+  const btn      = document.getElementById('submit-btn');
+
+  errEl.style.display = 'none';
+
+  if (!email || !password) {
+    errEl.textContent   = 'Please enter your email and password.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.innerHTML = '<span class="spinner"></span>';
+  btn.disabled  = true;
+
+  try {
+    if (loginType === 'donor') {
+  await api.login({ email, password });
+  showToast('Welcome back!', 'success');
+  setTimeout(() => { window.location.href = '../donor/profile.html'; }, 1000);
+
+} else if (loginType === 'ngo') {
+  await api.ngo.login({ email, password });
+  showToast('Welcome back!', 'success');
+  setTimeout(() => { window.location.href = '../ngo/profile.html'; }, 1000);
+
+} else {
+  const res = await api.admin.login(email, password);
+  try { localStorage.setItem('impactlink_session', JSON.stringify({ name: res.name || 'Admin', email })); } catch(e) {}
+  showToast('Welcome, Admin!', 'success');
+  setTimeout(() => { window.location.href = '../admin/dashboard.html'; }, 1000);
+}
+
+  } catch (err) {
+    errEl.textContent   = err.message;
+    errEl.style.display = 'block';
+    btn.innerHTML = 'Sign In';
+    btn.disabled  = false;
+  }
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+</script>
+</body>
+</html>

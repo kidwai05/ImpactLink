@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Register — ImpactLink</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+SC:wght@400;600;700&family=Raleway:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #020002;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Raleway', sans-serif;
+  padding: 2rem;
+}
+
+/* ── ambient glow blobs (no canvas) ── */
+.bg-glow {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+}
+.bg-glow::before {
+  content: '';
+  position: absolute;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(30,70,200,0.10) 0%, transparent 70%);
+  top: -150px; left: -150px;
+}
+.bg-glow::after {
+  content: '';
+  position: absolute;
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(80,30,180,0.08) 0%, transparent 70%);
+  bottom: -100px; right: -100px;
+}
+
+.form-shell {
+  position: relative; z-index: 10;
+  width: 100%; max-width: 420px;
+  animation: fadeUp 0.9s cubic-bezier(0.22,1,0.36,1) 0.15s both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.back-link {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-size: 0.65rem; letter-spacing: 0.16em; text-transform: uppercase;
+  color: rgba(150,180,235,0.45);
+  text-decoration: none;
+  margin-bottom: 1.8rem;
+  transition: color 0.2s;
+}
+.back-link:hover { color: #7aabee; }
+.back-link svg { width: 12px; height: 12px; }
+
+/* matches the login card from index.html exactly */
+.form-card {
+  background: linear-gradient(145deg, #070107, #040918);
+  border: 1px solid rgba(40,90,180,0.40);
+  border-radius: 12px;
+  padding: 2.4rem 2.2rem;
+  box-shadow: 0 0 20px rgba(30,80,200,0.18), 0 0 60px rgba(20,60,180,0.10);
+  transition: border-color 0.4s, box-shadow 0.4s;
+}
+.form-card:hover {
+  border-color: rgba(75, 7, 92, 0.7);
+  box-shadow: 0 0 35px rgba(30,90,220,0.22), 0 0 80px rgba(20,60,200,0.12);
+}
+
+/* logo icon — same circle as the login card on index */
+.card-icon {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(82, 10, 66, 0.801);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 1.4rem;
+  font-size: 1.1rem; color: #fa74ef;
+}
+
+.form-title {
+  font-family: 'Cormorant SC', serif;
+  font-size: 1.55rem; font-weight: 600;
+  letter-spacing: 0.12em;
+  color: #7aabee;
+  margin-bottom: 0.5rem;
+}
+
+.form-sub {
+  font-size: 0.75rem;
+  color: rgba(130,165,220,0.55);
+  letter-spacing: 0.08em;
+  line-height: 1.6;
+  margin-bottom: 1.8rem;
+}
+
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(50,100,200,0.25), transparent);
+  margin-bottom: 1.8rem;
+}
+
+/* inputs */
+.input-group { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1.1rem; }
+.input-label {
+  font-size: 0.63rem; letter-spacing: 0.16em; text-transform: uppercase;
+  color: rgba(130,165,220,0.55);
+}
+.input-field {
+  font-family: 'Raleway', sans-serif;
+  font-size: 0.84rem;
+  color: #d0e4ff;
+  background: rgba(6,10,26,0.80);
+  border: 1px solid rgba(50,100,200,0.22);
+  border-radius: 4px;
+  padding: 0.72rem 0.95rem;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+.input-field::placeholder { color: rgba(80,110,170,0.35); }
+.input-field:focus {
+  border-color: rgba(60,130,240,0.65);
+  box-shadow: 0 0 0 3px rgba(30,80,200,0.08);
+}
+
+/* password strength */
+.strength-bar {
+  height: 2px;
+  background: rgba(30,55,130,0.18);
+  border-radius: 2px;
+  margin-top: 0.4rem;
+  overflow: hidden;
+}
+.strength-fill {
+  height: 100%; border-radius: 2px;
+  transition: width 0.35s, background 0.35s;
+  width: 0%;
+}
+.strength-label {
+  font-size: 0.60rem; letter-spacing: 0.08em;
+  color: rgba(120,155,210,0.45);
+  margin-top: 0.2rem;
+}
+
+.error-text {
+  font-size: 0.70rem; letter-spacing: 0.05em;
+  color: rgba(240,130,130,0.85);
+  margin-bottom: 0.8rem;
+}
+
+/* button — same style as index login button */
+.submit-btn {
+  font-family: 'Raleway', sans-serif;
+  font-size: 0.72rem; letter-spacing: 0.20em; text-transform: uppercase;
+  color: #7aabee;
+  background: transparent;
+  border: 1px solid rgba(50,110,210,0.45);
+  padding: 0.85rem;
+  width: 100%; border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+}
+.submit-btn:hover {
+  background: rgba(30,70,180,0.15);
+  border-color: rgba(80,150,240,0.8);
+  color: #d0e4ff;
+  box-shadow: 0 0 20px rgba(40,90,210,0.15);
+}
+.submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.bottom-link {
+  text-align: center;
+  margin-top: 1.4rem;
+  font-size: 0.70rem;
+  color: rgba(130,165,220,0.45);
+  letter-spacing: 0.06em;
+}
+.bottom-link a {
+  color: #7aabee;
+  text-decoration: none;
+  transition: text-shadow 0.2s;
+}
+.bottom-link a:hover { text-shadow: 0 0 8px rgba(122,171,238,0.5); }
+
+/* spinner */
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(80,130,220,0.2);
+  border-top-color: #7aabee;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* toast */
+.toast-container {
+  position: fixed; top: 1.5rem; right: 1.5rem; z-index: 999;
+  display: flex; flex-direction: column; gap: 0.5rem; pointer-events: none;
+}
+.toast {
+  font-size: 0.74rem; letter-spacing: 0.07em;
+  padding: 0.7rem 1.1rem; border-radius: 4px;
+  transform: translateX(110%); opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.22,1,0.36,1), opacity 0.3s;
+  pointer-events: all; max-width: 280px;
+}
+.toast.show { transform: translateX(0); opacity: 1; }
+.toast-success {
+  background: rgba(8,22,12,0.96);
+  border: 1px solid rgba(40,160,80,0.40);
+  color: rgba(120,215,145,0.9);
+}
+.toast-error {
+  background: rgba(22,6,6,0.96);
+  border: 1px solid rgba(200,60,60,0.40);
+  color: rgba(240,145,145,0.9);
+}
+</style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+
+<div class="form-shell">
+  <a href="../index.html" class="back-link">
+    <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2L4 6l4 4"/></svg>
+    Back
+  </a>
+
+  <div class="form-card">
+    <div class="card-icon">&#10022;</div>
+    <div class="form-title">Create Account</div>
+    <p class="form-sub">Register as a donor and start connecting with causes that matter.</p>
+    <div class="divider"></div>
+
+    <div class="input-group">
+      <label class="input-label">Full Name</label>
+      <input class="input-field" id="name" type="text" placeholder="Your full name" autocomplete="name"/>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">Email Address</label>
+      <input class="input-field" id="email" type="email" placeholder="you@example.com" autocomplete="email"/>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">Password</label>
+      <input class="input-field" id="password" type="password" placeholder="Create a strong password"/>
+      <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+      <div class="strength-label" id="strength-label"></div>
+    </div>
+
+    <div id="error-msg" class="error-text" style="display:none;"></div>
+
+    <button class="submit-btn" id="submit-btn" onclick="handleRegister()">
+      Create Account
+    </button>
+
+    <div class="bottom-link">Already have an account? <a href="login.html">Sign in</a></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script src="../js/api.js"></script>
+<script>
+document.getElementById('password').addEventListener('input', function() {
+  const v = this.value;
+  const fill = document.getElementById('strength-fill');
+  const lbl  = document.getElementById('strength-label');
+  let score = 0;
+  if (v.length >= 8) score++;
+  if (/[A-Z]/.test(v)) score++;
+  if (/[0-9]/.test(v)) score++;
+  if (/[^A-Za-z0-9]/.test(v)) score++;
+  const map = [
+    { w:'0%',   c:'transparent',           t:'' },
+    { w:'25%',  c:'rgba(220,80,80,0.7)',   t:'Weak' },
+    { w:'50%',  c:'rgba(220,160,60,0.7)',  t:'Fair' },
+    { w:'75%',  c:'rgba(80,180,220,0.7)',  t:'Good' },
+    { w:'100%', c:'rgba(60,200,120,0.7)',  t:'Strong' },
+  ];
+  fill.style.width      = map[score].w;
+  fill.style.background = map[score].c;
+  lbl.textContent       = map[score].t;
+});
+
+function showToast(msg, type = 'success') {
+  const tc = document.getElementById('toast-container');
+  const t  = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  tc.appendChild(t);
+  requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3200);
+}
+
+async function handleRegister() {
+  const name     = document.getElementById('name').value.trim();
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const errEl    = document.getElementById('error-msg');
+  const btn      = document.getElementById('submit-btn');
+
+  errEl.style.display = 'none';
+
+  if (!name || !email || !password) {
+    errEl.textContent = 'Please fill in all fields.';
+    errEl.style.display = 'block'; return;
+  }
+  if (password.length < 6) {
+    errEl.textContent = 'Password must be at least 6 characters.';
+    errEl.style.display = 'block'; return;
+  }
+
+  btn.innerHTML = '<span class="spinner"></span>';
+  btn.disabled  = true;
+
+  try {
+    await api.register({ name, email, password });
+    showToast('Account created! Redirecting…', 'success');
+    setTimeout(() => { window.location.href = '../donor/profile.html'; }, 1200);
+  } catch (err) {
+    errEl.textContent   = err.message;
+    errEl.style.display = 'block';
+    btn.innerHTML = 'Create Account';
+    btn.disabled  = false;
+  }
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Enter') handleRegister(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ImpactLink</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+SC:wght@400;600;700&family=Raleway:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+  }
+
+  body {
+    width: 100vw;
+    height: 100vh;
+    background: #060007;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-family: 'Cormorant SC', serif;
+  }
+
+  canvas {
+    position: fixed; inset: 0;
+    width: 100%; height: 100%;
+    z-index: 1;
+  }
+
+  .stage {
+    position: relative; z-index: 10;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 2rem;
+  }
+
+  .line-top, .line-bottom {
+    height: 1px; width: 0;
+    background: linear-gradient(90deg, transparent, rgba(60, 110, 220, 0.5), transparent);
+    animation: lineExpand 0.9s ease 1.3s forwards;
+    margin: 0.6rem 0;
+  }
+
+  @keyframes lineExpand { to { width: 320px; } }
+
+  .logo-text {
+    font-family: 'Cormorant SC', serif;
+    font-size: clamp(2.4rem, 6vw, 3.6rem);
+    font-weight: 600;
+    letter-spacing: 0.20em;
+    color: #ffffff;
+    text-shadow:
+      0 0 10px rgba(255, 255, 255, 0.90),
+      0 0 28px rgba(255, 255, 255, 0.55),
+      0 0 65px rgba(140, 180, 255, 0.35),
+      0 0 120px rgba(60, 110, 240, 0.20);
+    opacity: 0;
+    animation: textReveal 1s ease 1.8s forwards;
+    white-space: nowrap;
+  }
+
+  @keyframes textReveal {
+    0%   { opacity: 0; letter-spacing: 0.42em; filter: blur(8px); }
+    100% { opacity: 1; letter-spacing: 0.20em; filter: blur(0); }
+  }
+
+  .tagline {
+    font-family: 'Raleway', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 400;
+    letter-spacing: 0.26em;
+    color: rgba(150, 180, 235, 0.6);
+    text-transform: uppercase;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 2.5s forwards;
+    margin-top: 0.9rem;
+  }
+
+  .cta-wrap {
+    margin-top: 2.8rem;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 3s forwards;
+  }
+
+  .cta-btn {
+    font-family: 'Raleway', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: #a8c4f0;
+    background: transparent;
+    border: 1px solid rgba(50, 100, 200, 0.4);
+    padding: 0.9rem 3rem;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: border-color 0.3s, color 0.3s, background 0.3s, box-shadow 0.3s;
+  }
+
+  .cta-btn:hover {
+    border-color: rgba(60, 130, 230, 0.8);
+    color: #d0e4ff;
+    background: rgba(30, 70, 180, 0.10);
+    box-shadow: 0 0 24px rgba(40, 90, 210, 0.15);
+  }
+
+  @keyframes fadeUp {
+    0%   { opacity: 0; transform: translateY(12px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  .bottom-text {
+    position: fixed; bottom: 2rem; left: 0; right: 0;
+    text-align: center;
+    font-family: 'Raleway', sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.22em;
+    color: rgba(150, 180, 235, 0.22);
+    opacity: 0;
+    animation: fadeUp 0.8s ease 3.5s forwards;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="swirl"></canvas>
+
+<div id="fs-overlay" style="position:fixed;inset:0;z-index:100;cursor:pointer;"></div>
+
+<div class="stage">
+  <div class="line-top"></div>
+  <span class="logo-text">ImpactLink</span>
+  <div class="line-bottom"></div>
+  <p class="tagline">Connecting donors with causes that matter</p>
+  <div class="cta-wrap">
+    <button class="cta-btn" id="enter-btn">Enter Platform</button>
+  </div>
+</div>
+
+<p class="bottom-text">Donor &nbsp;·&nbsp; NGO &nbsp;·&nbsp; Change</p>
+<style>
+@keyframes cardRise {
+  0%   { opacity:0; transform:translateY(32px); }
+  100% { opacity:1; transform:translateY(0); }
+}
+@keyframes headingFade {
+  0%   { opacity:0; transform:translateY(14px); }
+  100% { opacity:1; transform:translateY(0); }
+}
+.ws-heading  { animation: headingFade 0.8s cubic-bezier(0.22,1,0.36,1) 0.15s both; }
+.ws-sub      { animation: headingFade 0.8s cubic-bezier(0.22,1,0.36,1) 0.30s both; }
+.ws-card-l   { animation: cardRise   0.9s cubic-bezier(0.22,1,0.36,1) 0.45s both; }
+.ws-card-m   { animation: cardRise   0.9s cubic-bezier(0.22,1,0.36,1) 0.60s both; }
+.ws-card-r   { animation: cardRise   0.9s cubic-bezier(0.22,1,0.36,1) 0.75s both; }
+</style>
+
+<!-- Welcome Screen -->
+<div id="welcome-screen" style="position:fixed;inset:0;z-index:200;background:#080808;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.9s ease;padding:2rem;">
+
+  <h1 class="ws-heading" style="font-family:'Cormorant SC', serif;font-size:clamp(2rem,5vw,3.2rem);font-weight:400;color:#ffffff;letter-spacing:0.18em;text-shadow:0 0 10px rgba(255,255,255,0.90),0 0 28px rgba(255,255,255,0.55),0 0 65px rgba(140,180,255,0.40),0 0 120px rgba(60,110,240,0.22);margin-bottom:0.5rem;">Welcome</h1>
+
+  <p class="ws-sub" style="font-family:'Raleway',sans-serif;font-size:0.75rem;letter-spacing:0.22em;color:rgba(150,180,235,0.5);text-transform:uppercase;margin-bottom:3.5rem;">Choose how you'd like to continue</p>
+
+  <div style="display:flex;gap:1.5rem;align-items:stretch;width:100%;max-width:940px;">
+
+    <!-- Donor Card -->
+    <div class="ws-card-l" style="flex:1;background:linear-gradient(145deg,#1a0a2e,#120720);border:1px solid rgba(120,60,200,0.35);border-radius:12px;padding:2.2rem 2rem;display:flex;flex-direction:column;transition:border-color 0.4s,box-shadow 0.4s;" onmouseover="this.style.borderColor='rgba(150,80,240,0.65)';this.style.boxShadow='0 0 35px rgba(100,40,200,0.16),0 0 80px rgba(80,20,180,0.08)'" onmouseout="this.style.borderColor='rgba(120,60,200,0.35)';this.style.boxShadow='0 0 20px rgba(80,20,160,0.10)'">
+      <div style="font-family:'Cormorant SC',serif;font-size:1.05rem;font-weight:600;color:#c8a8f0;letter-spacing:0.12em;margin-bottom:0.4rem;">Register as Donor</div>
+      <div style="width:36px;height:1px;background:rgba(150,80,240,0.4);margin-bottom:1.4rem;"></div>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:0.85rem;flex:1;">
+        <li style="display:flex;align-items:flex-start;gap:0.6rem;font-family:'Raleway',sans-serif;font-size:0.82rem;color:rgba(210,195,240,0.75);line-height:1.5;"><span style="color:#9b6ee0;margin-top:2px;">&#10022;</span> Donate directly to causes that match your values</li>
+        <li style="display:flex;align-items:flex-start;gap:0.6rem;font-family:'Raleway',sans-serif;font-size:0.82rem;color:rgba(210,195,240,0.75);line-height:1.5;"><span style="color:#9b6ee0;margin-top:2px;">&#10022;</span> View your full donation history at a glance</li>
+        <li style="display:flex;align-items:flex-start;gap:0.6rem;font-family:'Raleway',sans-serif;font-size:0.82rem;color:rgba(210,195,240,0.75);line-height:1.5;"><span style="color:#9b6ee0;margin-top:2px;">&#10022;</span> Set preferences and locations to personalise your feed</li>
+        <li style="display:flex;align-items:flex-start;gap:0.6rem;font-family:'Raleway',sans-serif;font-size:0.82rem;color:rgba(210,195,240,0.75);line-height:1.5;"><span style="color:#9b6ee0;margin-top:2px;">&#10022;</span> Discover NGOs ranked and matched to your profile</li>
+      </ul>
+      <button onclick="location.href='pages/register-donor.html'" style="margin-top:2rem;font-family:'Raleway',sans-serif;font-size:0.72rem;letter-spacing:0.20em;text-transform:uppercase;color:#c8a8f0;background:transparent;border:1px solid rgba(140,70,220,0.45);padding:0.8rem 0;width:100%;border-radius:2px;cursor:pointer;transition:all 0.3s;" onmouseover="this.style.background='rgba(100,40,180,0.15)';this.style.borderColor='rgba(160,90,240,0.8)'" onmouseout="this.style.background='transparent';this.style.borderColor='rgba(140,70,220,0.45)'">Get Started</button>
+    </div>
+
+    <!-- Login Card (center) -->
+    <div class="ws-card-m" style="flex:0 0 260px;background:linear-gradient(145deg,#060c1e,#040918);border:1px solid rgba(40,90,180,0.40);border-radius:12px;padding:2.2rem 1.8rem;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;box-shadow:0 0 20px rgba(30,80,200,0.18),0 0 60px rgba(20,60,180,0.10);transition:border-color 0.4s,box-shadow 0.4s;" onmouseover="this.style.borderColor='rgba(60,130,240,0.70)';this.style.boxShadow='0 0 35px rgba(30,90,220,0.22),0 0 80px rgba(20,60,200,0.12)'" onmouseout="this.style.borderColor='rgba(40,90,180,0.40)';this.style.boxShadow='0 0 20px rgba(30,80,200,0.18),0 0 60px rgba(20,60,180,0.10)'">
+      <div style="width:48px;height:48px;border-radius:50%;border:1px solid rgba(60,120,220,0.35);display:flex;align-items:center;justify-content:center;margin-bottom:1.4rem;font-size:1.1rem;color:#7aabee;">&#10022;</div>
+      <div style="font-family:'Cormorant SC',serif;font-size:0.85rem;font-weight:600;color:#7aabee;letter-spacing:0.10em;margin-bottom:1rem;line-height:1.7;">Already have an account with us?</div>
+      <p style="font-family:'Raleway',sans-serif;font-size:0.78rem;color:rgba(130,165,220,0.55);line-height:1.6;margin-bottom:2rem;">Sign in to continue your journey and make a difference.</p>
+      <button onclick="location.href='pages/login.html'" style="font-family:'Raleway',sans-serif;font-size:0.72rem;letter-spacing:0.20em;text-transform:uppercase;color:#7aabee;background:transparent;border:1px solid rgba(50,110,210,0.45);padding:0.8rem 2rem;border-radius:2px;cursor:pointer;transition:all 0.3s;width:100%;" onmouseover="this.style.background='rgba(30,70,180,0.15)';this.style.borderColor='rgba(80,150,240,0.8)'" onmouseout="this.style.background='transparent';this.style.borderColor='rgba(50,110,210,0.45)'">Login</button>
+    </div>
+
+    <!-- Organization Card -->
+    <div class="ws-card-r" style="flex:1;background:linear-gradient(145deg,#1a0a2e,#120720);border:1px solid rgba(120,60,200,0.35);border-radius:12px;padding:2.2rem 2rem;display:flex;flex-direction:column;transition:border-color 0.4s,box-shadow 0.4s;" onmouseover="this.style.borderColor='rgba(150,80,240,0.65)';this.style.boxShadow='0 0 35px rgba(100,40,200,0.16),0 0 80px rgba(80,20,180,0.08)'" onmouseout="this.style.borderColor='rgba(120,60,200,0.35)';this.style.boxShadow='0 0 20px rgba(80,20,160,0.10)'">
+      <div style="font-family:'Cormorant SC',serif;font-size:1.05rem;font-weight:600;color:#c8a8f0;letter-spacing:0.12em;margin-bottom:0.4rem;">Register as Organization</div>
+      <div style="width:36px;height:1px;background:rgba(150,80,240,0.4);margin-bottom:1.4rem;"></div>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:0.85rem;flex:1;">
+        <li style="display:flex;align-items:flex-start;gap:0.6rem;font-family:'Raleway',sans-serif;font-size:0.82rem;color:rgba(210,195,240,0.75);line-height:1.5;"><span style="color:#9b6ee0;margin-top:2px;">&#10022;</span> Set up your NGO profile with categories and details</li>
+        <li style="display:flex;align-items:flex-start;gap:0.6rem;font-family:'Raleway',sans-serif;font-size:0.82rem;color:rgba(210,195,240,0.75);line-height:1.5;"><span style="color:#9b6ee0;margin-top:2px;">&#10022;</span> Post and manage a live needs list for your cause</li>
+        <li style="display:flex;align-items:flex-start;gap:0.6rem;font-family:'Raleway',sans-serif;font-size:0.82rem;color:rgba(210,195,240,0.75);line-height:1.5;"><span style="color:#9b6ee0;margin-top:2px;">&#10022;</span> Track committed donors and incoming support</li>
+        <li style="display:flex;align-items:flex-start;gap:0.6rem;font-family:'Raleway',sans-serif;font-size:0.82rem;color:rgba(210,195,240,0.75);line-height:1.5;"><span style="color:#9b6ee0;margin-top:2px;">&#10022;</span> Get discovered by donors matched to your mission</li>
+      </ul>
+      <button onclick="location.href='pages/register-org.html'" style="margin-top:2rem;font-family:'Raleway',sans-serif;font-size:0.72rem;letter-spacing:0.20em;text-transform:uppercase;color:#c8a8f0;background:transparent;border:1px solid rgba(140,70,220,0.45);padding:0.8rem 0;width:100%;border-radius:2px;cursor:pointer;transition:all 0.3s;" onmouseover="this.style.background='rgba(100,40,180,0.15)';this.style.borderColor='rgba(160,90,240,0.8)'" onmouseout="this.style.background='transparent';this.style.borderColor='rgba(140,70,220,0.45)'">Get Started</button>
+    </div>
+
+  </div>
+</div>
+
+
+<script>
+const canvas = document.getElementById('swirl');
+const ctx = canvas.getContext('2d');
+
+function goFullscreen() {
+  const el = document.documentElement;
+  if (el.requestFullscreen) el.requestFullscreen();
+  else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+}
+
+// Any click on the invisible overlay triggers fullscreen immediately
+document.getElementById('fs-overlay').addEventListener('click', function() {
+  goFullscreen();
+  this.remove(); // remove overlay so Enter button is clickable after
+});
+
+// Enter Platform button goes fullscreen + navigates
+document.getElementById('enter-btn').addEventListener('click', function() {
+  goFullscreen();
+  const ws = document.getElementById('welcome-screen');
+  ws.style.pointerEvents = 'all';
+  ws.style.opacity = '1';
+});
+
+function resize() {
+  canvas.width = window.screen.width;
+  canvas.height = window.screen.height;
+  canvas.style.width = '100vw';
+  canvas.style.height = '100vh';
+}
+
+function resizeAndRedraw() {
+  resize();
+  if (progress >= 1) draw(1);
+}
+
+resize();
+window.addEventListener('resize', resizeAndRedraw);
+document.addEventListener('fullscreenchange', resizeAndRedraw);
+document.addEventListener('webkitfullscreenchange', resizeAndRedraw);
+
+const ARCS = [
+  // outer halo — deep navy glow layers
+  { a0: 3.9,  a1: 5.5,  r: 0.44, lw: 90,  alpha: 0.08, blur: 55, color: '20, 55, 160' },
+  { a0: 3.95, a1: 5.45, r: 0.43, lw: 35,  alpha: 0.15, blur: 28, color: '30, 75, 190' },
+  { a0: 4.0,  a1: 5.4,  r: 0.42, lw: 9,   alpha: 0.45, blur: 6,  color: '55, 115, 230' },
+
+  // mid sweep opposite side
+  { a0: 0.8,  a1: 2.4,  r: 0.38, lw: 80,  alpha: 0.07, blur: 50, color: '15, 45, 150' },
+  { a0: 0.85, a1: 2.35, r: 0.37, lw: 32,  alpha: 0.13, blur: 24, color: '25, 65, 175' },
+  { a0: 0.9,  a1: 2.3,  r: 0.36, lw: 8,   alpha: 0.38, blur: 6,  color: '50, 105, 220' },
+
+  // inner swirls — dark navy core
+  { a0: 3.5,  a1: 5.0,  r: 0.26, lw: 60,  alpha: 0.06, blur: 40, color: '10, 35, 130' },
+  { a0: 3.55, a1: 4.95, r: 0.25, lw: 24,  alpha: 0.10, blur: 20, color: '20, 55, 155' },
+  { a0: 1.2,  a1: 2.6,  r: 0.22, lw: 55,  alpha: 0.06, blur: 38, color: '10, 35, 130' },
+  { a0: 1.25, a1: 2.55, r: 0.21, lw: 20,  alpha: 0.09, blur: 18, color: '20, 55, 155' },
+
+  // outermost faint halos
+  { a0: 4.2,  a1: 5.2,  r: 0.54, lw: 100, alpha: 0.05, blur: 65, color: '15, 40, 140' },
+  { a0: 1.0,  a1: 2.1,  r: 0.50, lw: 90,  alpha: 0.04, blur: 58, color: '15, 40, 140' },
+
+  // bright royal blue accent edge lines
+  { a0: 4.05, a1: 4.65, r: 0.42, lw: 2,   alpha: 0.70, blur: 2,  color: '80, 145, 255' },
+  { a0: 0.92, a1: 1.52, r: 0.36, lw: 2,   alpha: 0.60, blur: 2,  color: '80, 145, 255' },
+];
+
+let progress = 0;
+let startTime = null;
+const DURATION = 2600;
+
+function draw(p) {
+  const W = canvas.width;
+  const H = canvas.height;
+  const cx = W * 0.48;
+  const cy = H * 0.50;
+  const base = Math.min(W, H);
+
+  ctx.clearRect(0, 0, W, H);
+
+  ARCS.forEach(arc => {
+    const radius = arc.r * base;
+    const span = (arc.a1 - arc.a0) * p;
+    ctx.save();
+    ctx.filter = `blur(${arc.blur}px)`;
+    ctx.strokeStyle = `rgba(${arc.color}, ${arc.alpha * p})`;
+    ctx.lineWidth = arc.lw;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, arc.a0, arc.a0 + span);
+    ctx.stroke();
+    ctx.restore();
+  });
+
+  // subtle center depth vignette
+  ctx.save();
+  const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, base * 0.45);
+  grd.addColorStop(0,   `rgba(30, 20, 60, ${0.18 * p})`);
+  grd.addColorStop(0.5, `rgba(18, 14, 40, ${0.09 * p})`);
+  grd.addColorStop(1,    'rgba(0,0,0,0)');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+}
+
+function animate(ts) {
+  if (!startTime) startTime = ts;
+  progress = Math.min((ts - startTime) / DURATION, 1);
+  const p = 1 - Math.pow(1 - progress, 3);
+  draw(p);
+  if (progress < 1) requestAnimationFrame(animate);
+}
+
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>

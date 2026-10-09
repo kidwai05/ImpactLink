@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Organization Profile — ImpactLink</title>
+<link rel="stylesheet" href="../css/theme.css"/>
+<style>
+canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+.page-shell { position: relative; z-index: 1; }
+
+/* ── Hero ──────────────────────────────────────────────────────────────── */
+.hero {
+  text-align: center;
+  padding: 2.5rem 0 2rem;
+  animation: fadeUp 0.8s cubic-bezier(0.22,1,0.36,1) 0.1s both;
+}
+.hero-title { font-size: clamp(1.8rem, 4vw, 2.6rem); margin-bottom: 0.4rem; }
+.hero-sub   { margin-bottom: 1.2rem; }
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── Layout grid ───────────────────────────────────────────────────────── */
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+@media (max-width:700px) { .profile-grid { grid-template-columns: 1fr; } }
+
+.profile-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+@media (max-width:900px) { .profile-grid-3 { grid-template-columns: 1fr 1fr; } }
+@media (max-width:600px) { .profile-grid-3 { grid-template-columns: 1fr; } }
+
+/* ── Identity card (top-left) ──────────────────────────────────────────── */
+.identity-card {
+  background: linear-gradient(145deg, #0d0620, #070415);
+  border: 1px solid rgba(120,60,200,0.38);
+  border-radius: 12px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  animation: fadeUp 0.8s cubic-bezier(0.22,1,0.36,1) 0.15s both;
+  transition: border-color 0.4s, box-shadow 0.4s;
+}
+.identity-card:hover {
+  border-color: rgba(150,80,240,0.55);
+  box-shadow: 0 0 40px rgba(80,20,180,0.12);
+}
+
+.org-avatar {
+  width: 56px; height: 56px; border-radius: 50%;
+  border: 1px solid rgba(140,60,220,0.45);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--text-purple);
+  background: rgba(80,20,150,0.15);
+  flex-shrink: 0;
+}
+
+.org-name-block { display: flex; align-items: center; gap: 0.9rem; }
+
+.org-name {
+  font-family: var(--font-display);
+  font-size: 1.25rem; font-weight: 600; letter-spacing: 0.12em;
+  color: var(--text-head);
+  text-shadow: 0 0 10px rgba(255,255,255,0.5), 0 0 28px rgba(200,170,255,0.25);
+}
+
+.org-email {
+  font-family: var(--font-body);
+  font-size: 0.70rem; letter-spacing: 0.10em;
+  color: var(--text-muted);
+}
+
+.org-meta-row {
+  display: flex; flex-wrap: wrap; gap: 0.5rem;
+}
+
+.org-badge {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  padding: 0.22rem 0.75rem;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 0.68rem; letter-spacing: 0.10em;
+}
+.badge-purple {
+  background: rgba(80,20,150,0.20);
+  border: 1px solid rgba(130,60,220,0.38);
+  color: var(--text-purple);
+}
+.badge-blue {
+  background: rgba(20,60,160,0.20);
+  border: 1px solid rgba(50,110,210,0.38);
+  color: var(--text-blue);
+}
+
+.mission-text {
+  font-family: var(--font-body);
+  font-size: 0.78rem; line-height: 1.65; letter-spacing: 0.04em;
+  color: rgba(190,175,230,0.70);
+  border-top: 1px solid rgba(120,60,200,0.12);
+  padding-top: 0.9rem;
+}
+
+/* ── Stats card (top-right) ────────────────────────────────────────────── */
+.stats-card {
+  background: linear-gradient(145deg, #060c1e, #040918);
+  border: 1px solid rgba(40,90,180,0.40);
+  border-radius: 12px;
+  padding: 2rem;
+  animation: fadeUp 0.8s cubic-bezier(0.22,1,0.36,1) 0.28s both;
+  box-shadow: 0 0 20px rgba(30,80,200,0.12), 0 0 60px rgba(20,60,180,0.07);
+  transition: border-color 0.4s, box-shadow 0.4s;
+}
+.stats-card:hover {
+  border-color: rgba(60,130,240,0.60);
+  box-shadow: 0 0 35px rgba(30,90,220,0.16);
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 0.95rem; font-weight: 400; letter-spacing: 0.16em;
+  color: var(--text-head);
+  text-shadow: 0 0 8px rgba(255,255,255,0.45);
+  margin-bottom: 1.2rem;
+}
+
+.stats-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.stat-item {
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(40,80,180,0.18);
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  transition: border-color 0.3s;
+}
+.stat-item:hover { border-color: rgba(60,120,220,0.35); }
+
+.stat-value {
+  font-family: var(--font-display);
+  font-size: 1.7rem; font-weight: 400; letter-spacing: 0.08em;
+  color: var(--text-head);
+  text-shadow: 0 0 12px rgba(140,180,255,0.30);
+  display: block; margin-bottom: 0.2rem;
+}
+
+.stat-label {
+  font-family: var(--font-body);
+  font-size: 0.60rem; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.joined-line {
+  margin-top: 1.2rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(40,80,180,0.14);
+  font-family: var(--font-body);
+  font-size: 0.65rem; letter-spacing: 0.12em;
+  color: rgba(100,140,210,0.45);
+  text-align: right;
+}
+
+/* ── Category card ─────────────────────────────────────────────────────── */
+.cat-display-card {
+  background: linear-gradient(145deg, #0d0620, #070415);
+  border: 1px solid rgba(120,60,200,0.38);
+  border-radius: 12px;
+  padding: 2rem;
+  animation: fadeUp 0.8s cubic-bezier(0.22,1,0.36,1) 0.35s both;
+  transition: border-color 0.4s, box-shadow 0.4s;
+}
+.cat-display-card:hover {
+  border-color: rgba(150,80,240,0.55);
+  box-shadow: 0 0 35px rgba(100,40,200,0.12);
+}
+
+.category-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(110px,1fr));
+  gap: 0.5rem; margin-bottom: 1.2rem;
+}
+
+.cat-btn {
+  font-family: var(--font-body);
+  font-size: 0.63rem; letter-spacing: 0.13em; text-transform: uppercase;
+  padding: 0.55rem 0.4rem;
+  border: 1px solid rgba(80,120,200,0.22);
+  border-radius: 6px;
+  background: rgba(15,25,60,0.25);
+  color: rgba(130,165,230,0.55);
+  cursor: pointer; transition: all 0.2s;
+  text-align: center;
+}
+.cat-btn:hover {
+  border-color: rgba(80,150,240,0.50);
+  color: rgba(170,205,250,0.80);
+  background: rgba(25,55,140,0.15);
+}
+.cat-btn.active {
+  border-color: rgba(150,80,240,0.65);
+  background: rgba(70,25,150,0.22);
+  color: var(--text-purple);
+  box-shadow: 0 0 10px rgba(120,50,220,0.12);
+}
+
+.cat-count {
+  font-size: 0.60rem; letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+/* ── City card ─────────────────────────────────────────────────────────── */
+.city-card {
+  background: linear-gradient(145deg, #060c1e, #040918);
+  border: 1px solid rgba(40,90,180,0.40);
+  border-radius: 12px;
+  padding: 2rem;
+  animation: fadeUp 0.8s cubic-bezier(0.22,1,0.36,1) 0.42s both;
+  transition: border-color 0.4s, box-shadow 0.4s;
+}
+.city-card:hover {
+  border-color: rgba(60,130,240,0.60);
+  box-shadow: 0 0 35px rgba(30,90,220,0.14);
+}
+
+.city-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(110px,1fr));
+  gap: 0.5rem; margin-bottom: 1.2rem;
+}
+
+.city-btn {
+  font-family: var(--font-body);
+  font-size: 0.63rem; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 0.55rem 0.4rem;
+  border: 1px solid rgba(40,100,200,0.20);
+  border-radius: 6px;
+  background: rgba(10,20,55,0.25);
+  color: rgba(110,155,220,0.55);
+  cursor: pointer; transition: all 0.2s; text-align: center;
+}
+.city-btn:hover {
+  border-color: rgba(60,140,240,0.50);
+  color: rgba(150,195,255,0.80);
+  background: rgba(15,50,130,0.15);
+}
+.city-btn.active {
+  border-color: rgba(60,140,240,0.65);
+  background: rgba(20,60,160,0.22);
+  color: var(--text-blue);
+  box-shadow: 0 0 10px rgba(30,90,220,0.12);
+}
+
+/* ── Edit profile card ─────────────────────────────────────────────────── */
+.edit-card {
+  background: linear-gradient(145deg, #090916, #050510);
+  border: 1px solid rgba(40,80,180,0.28);
+  border-radius: 12px;
+  padding: 2rem;
+  animation: fadeUp 0.8s cubic-bezier(0.22,1,0.36,1) 0.50s both;
+  transition: border-color 0.4s;
+}
+.edit-card:hover { border-color: rgba(60,120,220,0.45); }
+
+.input-group { margin-bottom: 1.1rem; }
+
+.input-label {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 0.45rem;
+}
+
+.input-field {
+  width: 100%;
+  background: rgba(255,255,255,0.028);
+  border: 1px solid rgba(60,110,200,0.28);
+  border-radius: 3px;
+  padding: 0.72rem 0.9rem;
+  font-family: var(--font-body); font-size: 0.84rem; font-weight: 300;
+  color: rgba(200,220,255,0.85);
+  outline: none;
+  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+}
+.input-field::placeholder { color: rgba(100,140,200,0.30); }
+.input-field:focus {
+  border-color: rgba(80,140,240,0.60);
+  background: rgba(255,255,255,0.05);
+  box-shadow: 0 0 16px rgba(40,90,210,0.10);
+}
+
+textarea.input-field { resize: vertical; min-height: 80px; line-height: 1.6; }
+
+select.input-field {
+  -webkit-appearance: none; appearance: none; cursor: pointer;
+  background: rgba(10,6,26,0.75);
+}
+select.input-field option { background: #0d0620; }
+
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+
+/* ── Info banner ───────────────────────────────────────────────────────── */
+.info-card {
+  background: rgba(20,40,80,0.12);
+  border: 1px solid rgba(50,100,200,0.18);
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+  margin-bottom: 1.5rem;
+  font-family: var(--font-body);
+  font-size: 0.76rem; color: rgba(140,175,235,0.65);
+  line-height: 1.6; letter-spacing: 0.04em;
+}
+.info-card span { color: var(--text-blue); }
+
+/* ── Save row ──────────────────────────────────────────────────────────── */
+.save-row {
+  display: flex; justify-content: flex-end; gap: 0.8rem; margin-top: 0.5rem;
+  animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.6s both;
+}
+
+/* ── Buttons (matching register-org) ───────────────────────────────────── */
+.btn-purple {
+  font-family: var(--font-body); font-size: 0.70rem; letter-spacing: 0.20em; text-transform: uppercase;
+  color: var(--text-purple); background: transparent;
+  border: 1px solid rgba(140,70,220,0.45);
+  padding: 0.80rem 2rem; border-radius: 2px;
+  cursor: pointer; transition: all 0.3s;
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  text-decoration: none; white-space: nowrap;
+}
+.btn-purple:hover {
+  background: rgba(100,40,180,0.15);
+  border-color: rgba(160,90,240,0.80);
+  color: #e0d0ff;
+  box-shadow: 0 0 20px rgba(100,40,200,0.15);
+}
+.btn-purple:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-blue {
+  font-family: var(--font-body); font-size: 0.70rem; letter-spacing: 0.20em; text-transform: uppercase;
+  color: var(--text-blue); background: transparent;
+  border: 1px solid rgba(50,110,210,0.45);
+  padding: 0.80rem 2rem; border-radius: 2px;
+  cursor: pointer; transition: all 0.3s;
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  text-decoration: none; white-space: nowrap;
+}
+.btn-blue:hover {
+  background: rgba(30,70,180,0.15);
+  border-color: rgba(80,150,240,0.80);
+  color: #d0e4ff;
+}
+
+/* ── Needs list section ────────────────────────────────────────────────── */
+.needs-card {
+  background: linear-gradient(145deg, #060c1e, #040918);
+  border: 1px solid rgba(40,90,180,0.35);
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  animation: fadeUp 0.8s cubic-bezier(0.22,1,0.36,1) 0.55s both;
+  transition: border-color 0.4s;
+}
+.needs-card:hover { border-color: rgba(60,130,240,0.50); }
+
+.need-item {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid rgba(40,80,180,0.12);
+}
+.need-item:last-child { border-bottom: none; }
+
+.need-title {
+  font-family: var(--font-display); font-size: 0.90rem; letter-spacing: 0.10em;
+  color: rgba(210,200,245,0.85); margin-bottom: 0.2rem;
+}
+.need-desc {
+  font-family: var(--font-body); font-size: 0.72rem; letter-spacing: 0.04em;
+  color: var(--text-muted); line-height: 1.5;
+}
+.need-meta {
+  display: flex; gap: 0.6rem; margin-top: 0.35rem; flex-wrap: wrap;
+}
+
+.urgency-pill {
+  font-family: var(--font-body); font-size: 0.60rem; letter-spacing: 0.10em;
+  padding: 0.15rem 0.55rem; border-radius: 999px;
+}
+.urgency-high   { background: rgba(180,40,40,0.15); border:1px solid rgba(220,60,60,0.25); color:#e09090; }
+.urgency-medium { background: rgba(160,120,20,0.15); border:1px solid rgba(210,160,40,0.25); color:#d4b060; }
+.urgency-low    { background: rgba(30,120,70,0.15);  border:1px solid rgba(60,180,100,0.25); color:#70d898; }
+
+.need-amount {
+  font-family: var(--font-display); font-size: 0.85rem;
+  color: var(--text-blue); white-space: nowrap; margin-top: 0.2rem;
+}
+
+.need-remove {
+  background: none; border: none; cursor: pointer;
+  color: rgba(120,80,200,0.35); font-size: 0.85rem;
+  transition: color 0.2s; padding: 0.1rem; flex-shrink: 0;
+}
+.need-remove:hover { color: rgba(220,80,80,0.7); }
+
+.add-need-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; margin-top: 1.2rem;
+}
+@media(max-width:600px){ .add-need-row { grid-template-columns: 1fr; } }
+
+/* ── Toast ─────────────────────────────────────────────────────────────── */
+.toast-container { position: fixed; bottom: 2rem; right: 2rem; z-index: 999; display: flex; flex-direction: column; gap: 0.6rem; }
+.toast {
+  font-family: var(--font-body); font-size: 0.72rem; letter-spacing: 0.08em;
+  padding: 0.75rem 1.2rem; border-radius: 4px;
+  background: rgba(10,15,35,0.96); border: 1px solid rgba(60,110,220,0.30);
+  color: rgba(170,205,255,0.90);
+  opacity: 0; transform: translateY(10px);
+  transition: opacity 0.3s, transform 0.3s;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast-error   { border-color: rgba(200,60,60,0.35); color: rgba(240,160,160,0.90); }
+.toast-success { border-color: rgba(60,180,100,0.35); color: rgba(140,230,175,0.90); }
+
+/* ── Spinner ───────────────────────────────────────────────────────────── */
+.spinner {
+  width: 14px; height: 14px;
+  border: 1.5px solid rgba(160,130,240,0.20);
+  border-top-color: rgba(160,130,240,0.80);
+  border-radius: 50%; animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Glow line ─────────────────────────────────────────────────────────── */
+.glow-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(60,110,220,0.45), transparent);
+}
+
+/* ── Page nav (reuse donor style) ──────────────────────────────────────── */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.2rem 2.5rem;
+  background: linear-gradient(180deg, rgba(6,7,13,0.95) 0%, rgba(6,7,13,0) 100%);
+  backdrop-filter: blur(2px);
+}
+.nav-logo {
+  font-family: var(--font-display); font-size: 1.1rem; font-weight: 600;
+  letter-spacing: 0.22em; color: var(--text-head); text-decoration: none;
+  text-shadow: 0 0 18px rgba(255,255,255,0.50), 0 0 40px rgba(140,180,255,0.20);
+}
+.nav-links { display: flex; align-items: center; gap: 1.8rem; }
+.nav-link {
+  font-family: var(--font-body); font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--text-muted); text-decoration: none; background: none; border: none; cursor: pointer;
+  transition: color 0.2s; padding: 0; font-weight: 400;
+}
+.nav-link:hover, .nav-link.active { color: var(--text-blue); }
+.nav-link.logout { color: rgba(200,150,240,0.45); }
+.nav-link.logout:hover { color: var(--text-purple); }
+
+/* ── Page content ──────────────────────────────────────────────────────── */
+.page-content { padding: 5.5rem 2rem 3rem; max-width: 980px; margin: 0 auto; }
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<div class="page-shell">
+
+  <!-- NAV -->
+  <nav class="nav">
+    <a href="../index.html" class="nav-logo">ImpactLink</a>
+    <div class="nav-links">
+      <a href="profile.html"    class="nav-link active">Profile</a>
+      <a href="dashboard.html"  class="nav-link">Dashboard</a>
+      <a href="needs.html"      class="nav-link">Needs</a>
+      <button class="nav-link logout" onclick="handleLogout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page-content">
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="il-h1 hero-title" id="hero-title">Organization Profile</div>
+      <div class="il-sub hero-sub" id="hero-sub">Manage your presence on ImpactLink</div>
+      <div class="glow-line" style="max-width:300px;margin:0.8rem auto 0;"></div>
+    </div>
+
+    <!-- INFO BANNER -->
+    <div class="info-card hidden" id="info-banner">
+      ✦ &nbsp;Profile complete — head to your <span><a href="dashboard.html" style="color:var(--text-blue);text-decoration:none;">Dashboard</a></span> to see incoming donor matches.
+    </div>
+
+    <!-- ROW 1: Identity + Stats -->
+    <div class="profile-grid">
+
+      <!-- Identity card -->
+      <div class="identity-card" id="identity-card">
+        <div class="org-name-block">
+          <div class="org-avatar" id="org-avatar">?</div>
+          <div>
+            <div class="org-name" id="org-name">—</div>
+            <div class="org-email" id="org-email">—</div>
+          </div>
+        </div>
+        <div class="org-meta-row" id="org-meta-row">
+          <!-- badges injected -->
+        </div>
+        <div class="mission-text" id="org-mission">—</div>
+      </div>
+
+      <!-- Stats card -->
+      <div class="stats-card">
+        <div class="section-title">Overview</div>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-value" id="stat-cats">0</span>
+            <span class="stat-label">Cause categories</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value" id="stat-cities">0</span>
+            <span class="stat-label">Cities covered</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value" id="stat-needs">0</span>
+            <span class="stat-label">Active needs</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value" id="stat-donors">—</span>
+            <span class="stat-label">Matched donors</span>
+          </div>
+        </div>
+        <div class="joined-line" id="joined-line">Joined —</div>
+      </div>
+    </div>
+
+    <!-- ROW 2: Category + City assignments -->
+    <div class="profile-grid">
+
+      <!-- Category assignment -->
+      <div class="cat-display-card">
+        <div class="section-title">Cause Categories</div>
+        <p style="font-size:0.70rem;color:var(--text-muted);margin-bottom:1rem;letter-spacing:0.05em;line-height:1.55;">
+          Select every cause your organisation works on. Donors are matched based on these.
+        </p>
+        <div class="category-grid" id="cat-grid">
+          <!-- injected -->
+        </div>
+        <div class="cat-count" id="cat-count">0 selected</div>
+      </div>
+
+      <!-- City assignment -->
+      <div class="city-card">
+        <div class="section-title">Cities / Regions</div>
+        <p style="font-size:0.70rem;color:var(--text-muted);margin-bottom:1rem;letter-spacing:0.05em;line-height:1.55;">
+          Mark every city where your organisation operates or delivers impact.
+        </p>
+        <div class="city-grid" id="city-grid">
+          <!-- injected -->
+        </div>
+        <div class="cat-count" id="city-count">0 selected</div>
+      </div>
+    </div>
+
+    <!-- ROW 3: Edit profile fields -->
+    <div class="edit-card" style="margin-bottom:1.5rem;">
+      <div class="section-title">Edit Profile</div>
+
+      <div class="field-row">
+        <div class="input-group">
+          <label class="input-label" for="edit-name">Organization Name</label>
+          <input class="input-field" id="edit-name" type="text" placeholder="Your organization name"/>
+        </div>
+        <div class="input-group">
+          <label class="input-label" for="edit-phone">Phone / WhatsApp</label>
+          <input class="input-field" id="edit-phone" type="tel" placeholder="+92 3xx xxxxxxx"/>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label class="input-label" for="edit-mission">Mission Statement</label>
+        <textarea class="input-field" id="edit-mission" placeholder="Describe your mission in 2–3 sentences…"></textarea>
+      </div>
+
+      <div class="field-row">
+        <div class="input-group">
+          <label class="input-label" for="edit-website">Website (optional)</label>
+          <input class="input-field" id="edit-website" type="url" placeholder="https://yourorg.org"/>
+        </div>
+        <div class="input-group">
+          <label class="input-label" for="edit-founded">Founded Year (optional)</label>
+          <input class="input-field" id="edit-founded" type="number" placeholder="e.g. 2010" min="1900" max="2099"/>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;margin-top:0.5rem;">
+        <button class="btn-purple" id="save-profile-btn" onclick="saveProfile()">Save Changes</button>
+      </div>
+    </div>
+
+    <!-- ROW 3b: Verification Documents / Links -->
+    <div class="edit-card" style="margin-bottom:1.5rem;" id="docs-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;">
+        <div class="section-title" style="margin-bottom:0;">Verification Documents</div>
+        <span style="font-size:0.62rem;color:var(--text-muted);letter-spacing:0.08em;">Visible to admin during review</span>
+      </div>
+
+      <!-- Existing docs list -->
+      <div id="docs-list" style="margin-bottom:1rem;"></div>
+
+      <!-- Add link/document form -->
+      <div style="border:1px solid rgba(40,80,180,0.18);border-radius:8px;padding:1.1rem;background:rgba(255,255,255,0.015);">
+        <div class="field-row">
+          <div class="input-group" style="margin-bottom:0;">
+            <label class="input-label" for="doc-link">Document Link (Google Drive, Dropbox, etc.)</label>
+            <input class="input-field" id="doc-link" type="url" placeholder="https://drive.google.com/file/..."/>
+          </div>
+          <div class="input-group" style="margin-bottom:0;">
+            <label class="input-label" for="doc-type">Document Type</label>
+            <select class="input-field" id="doc-type">
+              <option value="registration">Registration Certificate</option>
+              <option value="tax">Tax Exemption</option>
+              <option value="identity">Identity / NIC</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div id="doc-error" style="display:none;color:rgba(240,130,130,0.85);font-size:0.72rem;margin-top:0.5rem;"></div>
+        <div style="display:flex;justify-content:flex-end;margin-top:0.75rem;">
+          <button class="btn-blue" style="font-size:0.62rem;padding:0.6rem 1.4rem;" onclick="submitDoc()">Add Link</button>
+        </div>
+      </div>
+    </div>
+
+        <!-- ROW 4: Needs / Requirements list -->
+    <div class="needs-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:0.75rem;">
+        <div class="section-title" style="margin-bottom:0;">Needs &amp; Requirements</div>
+        <button class="btn-blue" style="font-size:0.62rem;padding:0.55rem 1.2rem;" onclick="toggleAddNeed()">+ Post a Need</button>
+      </div>
+
+      <!-- Add need form (hidden by default) -->
+      <div id="add-need-form" style="display:none;margin-bottom:1.5rem;padding:1.2rem;background:rgba(255,255,255,0.018);border:1px solid rgba(40,80,180,0.18);border-radius:8px;">
+        <div class="add-need-row">
+          <div class="input-group" style="margin-bottom:0;">
+            <label class="input-label">Title</label>
+            <input class="input-field" id="need-title" type="text" placeholder="e.g. School supplies for 200 students"/>
+          </div>
+          <div class="input-group" style="margin-bottom:0;">
+            <label class="input-label">Amount Needed (PKR)</label>
+            <input class="input-field" id="need-amount" type="number" placeholder="e.g. 50000" min="0"/>
+          </div>
+          <div class="input-group" style="margin-bottom:0;">
+            <label class="input-label">Urgency</label>
+            <select class="input-field" id="need-urgency">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <div class="input-group" style="margin-bottom:0;">
+            <label class="input-label">Description</label>
+            <input class="input-field" id="need-desc" type="text" placeholder="Brief detail…"/>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:0.6rem;margin-top:0.9rem;">
+          <button class="btn-purple" style="font-size:0.62rem;padding:0.6rem 1.4rem;" onclick="submitNeed()">Post Need</button>
+          <button class="btn-blue"   style="font-size:0.62rem;padding:0.6rem 1.4rem;" onclick="toggleAddNeed()">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Needs list -->
+      <div id="needs-list">
+        <div style="text-align:center;padding:2rem 0;color:var(--text-muted);font-size:0.72rem;letter-spacing:0.08em;" id="needs-empty">
+          No needs posted yet — click "Post a Need" to let donors know what you require.
+        </div>
+      </div>
+    </div>
+
+    <!-- SAVE ROW -->
+    <div class="save-row">
+      <a href="dashboard.html" class="btn-blue" style="text-decoration:none;">Go to Dashboard →</a>
+      <button class="btn-purple" id="save-all-btn" onclick="saveAll()">Save All Preferences</button>
+    </div>
+
+  </div><!-- /page-content -->
+</div><!-- /page-shell -->
+
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ── Scripts ─────────────────────────────────────────────────────────────── -->
+<script src="../js/api.js"></script>
+<script>
+// ── Swirl canvas ────────────────────────────────────────────────────────────
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resizeCanvas(); window.addEventListener('resize', resizeCanvas);
+const ARCS = [
+  { a0:3.9,  a1:5.5,  r:0.44, lw:90,  alpha:0.07, blur:55, color:'80,20,180'  },
+  { a0:3.95, a1:5.45, r:0.43, lw:35,  alpha:0.13, blur:28, color:'100,30,200' },
+  { a0:4.0,  a1:5.4,  r:0.42, lw:9,   alpha:0.35, blur:6,  color:'140,70,240' },
+  { a0:0.8,  a1:2.4,  r:0.38, lw:80,  alpha:0.05, blur:50, color:'60,15,160'  },
+  { a0:0.9,  a1:2.3,  r:0.36, lw:8,   alpha:0.28, blur:6,  color:'120,50,220' },
+  { a0:3.5,  a1:5.0,  r:0.26, lw:60,  alpha:0.05, blur:40, color:'50,10,130'  },
+  { a0:4.2,  a1:5.2,  r:0.54, lw:100, alpha:0.04, blur:65, color:'40,10,140'  },
+];
+(function drawSwirl(){
+  const W=canvas.width,H=canvas.height,cx=W*.5,cy=H*.5,b=Math.min(W,H);
+  ctx.clearRect(0,0,W,H);
+  ARCS.forEach(a=>{
+    ctx.save(); ctx.filter=`blur(${a.blur}px)`;
+    ctx.strokeStyle=`rgba(${a.color},${a.alpha})`;
+    ctx.lineWidth=a.lw; ctx.lineCap='round';
+    ctx.beginPath(); ctx.arc(cx,cy,a.r*b,a.a0,a.a1); ctx.stroke(); ctx.restore();
+  });
+})();
+
+// ── Auth guard ───────────────────────────────────────────────────────────────
+const session = api.ngo.requireAuth();
+if (!session) throw 0;
+
+// ── Constants ────────────────────────────────────────────────────────────────
+const ALL_CATEGORIES = ['Education','Health','Environment','Poverty','Women','Children','Disaster','Animals','Microfinance','Water','Food','Youth'];
+const ALL_CITIES     = ['Karachi','Lahore','Islamabad','Rawalpindi','Peshawar','Quetta','Multan','Faisalabad','Hyderabad','Larkana','Sukkur','Abbottabad'];
+
+// ── State ────────────────────────────────────────────────────────────────────
+let selectedCats  = [];
+let selectedCities = [];
+let needs         = [];
+let fullProfile   = {};
+
+// ── Toast ────────────────────────────────────────────────────────────────────
+function showToast(msg, type = 'success') {
+  const tc = document.getElementById('toast-container');
+  const t  = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  tc.appendChild(t);
+  requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3000);
+}
+
+// ── Initials helper ──────────────────────────────────────────────────────────
+function initials(name) {
+  return (name || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+
+// ── Render identity card ─────────────────────────────────────────────────────
+function renderIdentity(p) {
+  document.getElementById('org-avatar').textContent  = initials(p.orgName);
+  document.getElementById('org-name').textContent    = p.orgName  || '—';
+  document.getElementById('org-email').textContent   = p.email    || '—';
+  document.getElementById('org-mission').textContent = p.mission  || 'No mission statement yet.';
+
+  document.getElementById('hero-title').textContent = p.orgName  || 'Organization Profile';
+  document.getElementById('hero-sub').textContent   = p.category ? `${p.category} · ${p.city || ''}` : 'Manage your presence on ImpactLink';
+
+  // Badges
+  const row = document.getElementById('org-meta-row');
+  row.innerHTML = '';
+  if (p.category) {
+    const b = document.createElement('span');
+    b.className = 'org-badge badge-purple';
+    b.textContent = p.category;
+    row.appendChild(b);
+  }
+  if (p.city) {
+    const b = document.createElement('span');
+    b.className = 'org-badge badge-blue';
+    b.textContent = '📍 ' + p.city;
+    row.appendChild(b);
+  }
+  if (p.phone) {
+    const b = document.createElement('span');
+    b.className = 'org-badge badge-blue';
+    b.textContent = p.phone;
+    row.appendChild(b);
+  }
+  if (p.website) {
+    const b = document.createElement('span');
+    b.className = 'org-badge badge-blue';
+    b.textContent = p.website.replace('https://','').replace('http://','');
+    row.appendChild(b);
+  }
+  if (p.founded) {
+    const b = document.createElement('span');
+    b.className = 'org-badge badge-purple';
+    b.textContent = 'Est. ' + p.founded;
+    row.appendChild(b);
+  }
+
+  // Joined line
+  const joined = p.createdAt ? new Date(p.createdAt).toLocaleDateString('en-GB', { month:'long', year:'numeric' }) : '—';
+  document.getElementById('joined-line').textContent = 'Joined ' + joined;
+
+  // Pre-fill edit fields
+  document.getElementById('edit-name').value    = p.orgName  || '';
+  document.getElementById('edit-phone').value   = p.phone    || '';
+  document.getElementById('edit-mission').value = p.mission  || '';
+  document.getElementById('edit-website').value = p.website  || '';
+  document.getElementById('edit-founded').value = p.founded  || '';
+}
+
+// ── Render stats ─────────────────────────────────────────────────────────────
+function renderStats() {
+  document.getElementById('stat-cats').textContent   = selectedCats.length;
+  document.getElementById('stat-cities').textContent = selectedCities.length;
+  document.getElementById('stat-needs').textContent  = needs.length;
+  // mock matched donors based on cats+cities
+  const score = selectedCats.length * 3 + selectedCities.length * 2;
+  document.getElementById('stat-donors').textContent = score > 0 ? score + '+' : '—';
+}
+
+// ── Render category grid ─────────────────────────────────────────────────────
+function renderCatGrid() {
+  const grid = document.getElementById('cat-grid');
+  grid.innerHTML = '';
+  ALL_CATEGORIES.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn' + (selectedCats.includes(cat) ? ' active' : '');
+    btn.textContent = cat;
+    btn.onclick = () => toggleCat(cat, btn);
+    grid.appendChild(btn);
+  });
+  updateCatCount();
+}
+
+function toggleCat(cat, btn) {
+  if (selectedCats.includes(cat)) {
+    selectedCats = selectedCats.filter(c => c !== cat);
+    btn.classList.remove('active');
+  } else {
+    selectedCats.push(cat);
+    btn.classList.add('active');
+  }
+  updateCatCount();
+  renderStats();
+}
+
+function updateCatCount() {
+  const el = document.getElementById('cat-count');
+  el.textContent = selectedCats.length
+    ? selectedCats.length + ' selected: ' + selectedCats.join(', ')
+    : '0 selected';
+}
+
+// ── Render city grid ─────────────────────────────────────────────────────────
+function renderCityGrid() {
+  const grid = document.getElementById('city-grid');
+  grid.innerHTML = '';
+  ALL_CITIES.forEach(city => {
+    const btn = document.createElement('button');
+    btn.className = 'city-btn' + (selectedCities.includes(city) ? ' active' : '');
+    btn.textContent = city;
+    btn.onclick = () => toggleCity(city, btn);
+    grid.appendChild(btn);
+  });
+  updateCityCount();
+}
+
+function toggleCity(city, btn) {
+  if (selectedCities.includes(city)) {
+    selectedCities = selectedCities.filter(c => c !== city);
+    btn.classList.remove('active');
+  } else {
+    selectedCities.push(city);
+    btn.classList.add('active');
+  }
+  updateCityCount();
+  renderStats();
+}
+
+function updateCityCount() {
+  const el = document.getElementById('city-count');
+  el.textContent = selectedCities.length
+    ? selectedCities.length + ' selected: ' + selectedCities.join(', ')
+    : '0 selected';
+}
+
+// ── Render needs list ─────────────────────────────────────────────────────────
+function renderNeeds() {
+  const list  = document.getElementById('needs-list');
+  const empty = document.getElementById('needs-empty');
+  list.innerHTML = '';
+  if (!needs.length) {
+    const e = document.createElement('div');
+    e.id = 'needs-empty';
+    e.style.cssText = 'text-align:center;padding:2rem 0;color:var(--text-muted);font-size:0.72rem;letter-spacing:0.08em;';
+    e.textContent = 'No needs posted yet — click "Post a Need" to let donors know what you require.';
+    list.appendChild(e);
+    return;
+  }
+
+  needs.forEach(n => {
+    const urgencyClass = `urgency-${n.urgency || 'medium'}`;
+    const row = document.createElement('div');
+    row.className = 'need-item';
+    row.innerHTML = `
+      <div style="flex:1;">
+        <div class="need-title">${n.title}</div>
+        <div class="need-desc">${n.description || ''}</div>
+        <div class="need-meta">
+          <span class="urgency-pill ${urgencyClass}">${(n.urgency||'medium').toUpperCase()}</span>
+          ${n.amountNeeded ? `<span class="need-amount">₨ ${Number(n.amountNeeded).toLocaleString()}</span>` : ''}
+          <span style="font-size:0.60rem;color:var(--text-muted);letter-spacing:0.06em;">${n.createdAt ? new Date(n.createdAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : ''}</span>
+        </div>
+      </div>
+      <button class="need-remove" onclick="removeNeed('${n.id}')" title="Remove">✕</button>
+    `;
+    list.appendChild(row);
+  });
+  renderStats();
+}
+
+// ── Toggle add-need form ──────────────────────────────────────────────────────
+function toggleAddNeed() {
+  const form = document.getElementById('add-need-form');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+async function submitNeed() {
+  const title  = document.getElementById('need-title').value.trim();
+  const amount = document.getElementById('need-amount').value;
+  const urgency = document.getElementById('need-urgency').value;
+  const desc   = document.getElementById('need-desc').value.trim();
+  if (!title) { showToast('Please enter a title.', 'error'); return; }
+  try {
+    const res = await api.ngo.addNeed({ title, description: desc, amountNeeded: amount, urgency });
+    needs.unshift(res.need);
+    renderNeeds();
+    document.getElementById('need-title').value  = '';
+    document.getElementById('need-amount').value = '';
+    document.getElementById('need-desc').value   = '';
+    document.getElementById('add-need-form').style.display = 'none';
+    showToast('Need posted successfully.', 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function removeNeed(id) {
+  try {
+    await api.ngo.removeNeed(id);
+    needs = needs.filter(n => n.id !== id);
+    renderNeeds();
+    showToast('Need removed.', 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ── Save profile fields ───────────────────────────────────────────────────────
+async function saveProfile() {
+  const btn = document.getElementById('save-profile-btn');
+  btn.innerHTML = '<span class="spinner"></span>';
+  btn.disabled  = true;
+  try {
+    const updates = {
+      orgName: document.getElementById('edit-name').value.trim()    || fullProfile.orgName,
+      phone:   document.getElementById('edit-phone').value.trim()   || '',
+      mission: document.getElementById('edit-mission').value.trim() || '',
+      website: document.getElementById('edit-website').value.trim() || '',
+      founded: document.getElementById('edit-founded').value.trim() || '',
+    };
+    await api.ngo.updateProfile(updates);
+    fullProfile = { ...fullProfile, ...updates };
+    renderIdentity(fullProfile);
+    showToast('Profile updated!', 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+  finally { btn.innerHTML = 'Save Changes'; btn.disabled = false; }
+}
+
+// ── Verification Documents ───────────────────────────────────────────────────
+const DOC_ICONS = { registration:'📄', tax:'📋', identity:'🪪', other:'📎' };
+
+async function loadDocs() {
+  const list = document.getElementById('docs-list');
+  try {
+    const docs = await api.ngo.getDocuments();
+    if (!docs.length) {
+      list.innerHTML = '<div style="font-size:0.72rem;color:var(--text-muted);padding:0.3rem 0 0.6rem;">No documents added yet.</div>';
+      return;
+    }
+    list.innerHTML = docs.map(d => `
+      <div style="display:flex;align-items:center;gap:0.7rem;padding:0.45rem 0;border-bottom:1px solid rgba(40,80,180,0.08);">
+        <span style="font-size:0.9rem;width:20px;text-align:center;">${DOC_ICONS[d.type]||DOC_ICONS.other}</span>
+        <a href="${d.name}" target="_blank" rel="noopener"
+           style="flex:1;font-size:0.74rem;color:var(--accent-blue);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:none;"
+           title="${d.name}">${d.name}</a>
+        <span style="font-size:0.58rem;letter-spacing:0.10em;text-transform:uppercase;color:var(--text-muted);flex-shrink:0;">${d.type}</span>
+        <span style="font-size:0.65rem;color:var(--text-muted);flex-shrink:0;">${d.uploadedAt}</span>
+      </div>`).join('');
+  } catch(e) {
+    list.innerHTML = '<div style="font-size:0.72rem;color:var(--text-muted);">Could not load documents.</div>';
+  }
+}
+
+async function submitDoc() {
+  const linkEl  = document.getElementById('doc-link');
+  const typeEl  = document.getElementById('doc-type');
+  const errEl   = document.getElementById('doc-error');
+  const link    = linkEl.value.trim();
+  errEl.style.display = 'none';
+
+  if (!link) {
+    errEl.textContent = 'Please enter a document link.';
+    errEl.style.display = 'block';
+    return;
+  }
+  try { new URL(link); } catch(e) {
+    errEl.textContent = 'Please enter a valid URL (starting with https://).';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    await api.ngo.uploadDocument({ file_name: link, doc_type: typeEl.value });
+    linkEl.value = '';
+    showToast('Document link saved!', 'success');
+    loadDocs();
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+// ── Save all (cats + cities) ──────────────────────────────────────────────────
+async function saveAll() {
+  const btn = document.getElementById('save-all-btn');
+  btn.innerHTML = '<span class="spinner"></span>';
+  btn.disabled  = true;
+  try {
+    await api.ngo.updateProfile({
+      categories: selectedCats,
+      cities:     selectedCities,
+    });
+    fullProfile = { ...fullProfile, categories: selectedCats, cities: selectedCities };
+    if (selectedCats.length || selectedCities.length) {
+      document.getElementById('info-banner').classList.remove('hidden');
+    }
+    showToast('Preferences saved!', 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+  finally { btn.innerHTML = 'Save All Preferences'; btn.disabled = false; }
+}
+
+function handleLogout() {
+  api.ngo.logout();
+  window.location.href = '../index.html';
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+(async () => {
+  try {
+    const p = await api.ngo.getProfile();
+    fullProfile = p;
+    loadDocs();
+
+    // Seed cats/cities from registration data
+    selectedCats   = p.categories || (p.category ? [p.category] : []);
+    selectedCities = p.cities     || (p.city     ? [p.city]     : []);
+
+    renderIdentity(p);
+    renderCatGrid();
+    renderCityGrid();
+
+    needs = await api.ngo.getNeeds();
+    renderNeeds();
+    renderStats();
+
+    if (selectedCats.length || selectedCities.length) {
+      document.getElementById('info-banner').classList.remove('hidden');
+    }
+  } catch(e) {
+    // requireNgoAuth handles redirect
+    console.error(e);
+  }
+})();
+</script>
+</body>
+</html>

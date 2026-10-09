@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Needs — ImpactLink</title>
+<link rel="stylesheet" href="../css/theme.css"/>
+<style>
+canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+.page-shell { position: relative; z-index: 1; }
+
+/* ── Hero ── */
+.hero {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  padding-bottom: 1.8rem; margin-bottom: 2rem;
+  border-bottom: 1px solid rgba(120,60,200,0.12);
+  animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.1s both;
+}
+.hero-title { font-size: clamp(1.6rem, 3.5vw, 2.4rem); margin-bottom: 0.3rem; }
+
+/* ── Add need form card ── */
+.form-card {
+  background: linear-gradient(145deg, #110820, #0c0518);
+  border: 1px solid rgba(120,60,200,0.30);
+  border-radius: 12px; padding: 2rem;
+  margin-bottom: 2.2rem;
+  box-shadow: 0 0 30px rgba(80,20,180,0.08);
+  animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.2s both;
+}
+.form-card-title {
+  font-family: var(--font-display); font-size: 1.05rem; font-weight: 400;
+  letter-spacing: 0.14em; color: var(--text-primary);
+  text-shadow: 0 0 8px rgba(255,255,255,0.4);
+  margin-bottom: 1.4rem;
+}
+.form-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.2rem;
+}
+.form-grid .input-group { margin-bottom: 1.1rem; }
+.form-grid .span-2 { grid-column: 1 / -1; }
+
+textarea.input-field {
+  resize: vertical; min-height: 80px; line-height: 1.5;
+}
+select.input-field option { background: #0c0518; color: #ffffff; }
+
+.form-actions { display: flex; justify-content: flex-end; gap: 0.7rem; margin-top: 0.4rem; }
+
+/* ── Section header ── */
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.2rem;
+  animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.3s both;
+}
+.section-title {
+  font-family: var(--font-display); font-size: 1.2rem; font-weight: 400;
+  letter-spacing: 0.14em; color: var(--text-primary);
+  text-shadow: 0 0 8px rgba(255,255,255,0.4);
+}
+
+/* ── Filter tabs ── */
+.filter-tabs {
+  display: flex; gap: 0.4rem;
+  animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.3s both;
+  margin-bottom: 1.4rem;
+}
+.filter-tab {
+  font-family: var(--font-body); font-size: 0.65rem; letter-spacing: 0.16em;
+  text-transform: uppercase; padding: 0.45rem 1rem;
+  border: 1px solid rgba(100,40,200,0.22); border-radius: 20px;
+  background: transparent; color: var(--text-muted);
+  cursor: pointer; transition: all 0.2s;
+}
+.filter-tab:hover { border-color: rgba(140,70,220,0.50); color: rgba(200,168,240,0.8); }
+.filter-tab.active {
+  border-color: rgba(150,80,240,0.65); background: rgba(80,20,160,0.18);
+  color: var(--accent-purple); box-shadow: 0 0 10px rgba(120,50,220,0.10);
+}
+
+/* ── Needs list ── */
+.needs-list {
+  display: flex; flex-direction: column; gap: 1rem;
+  animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.35s both;
+}
+
+/* ── Need card ── */
+.need-card {
+  background: linear-gradient(135deg, #0f0620, #09041a);
+  border: 1px solid rgba(100,40,200,0.25);
+  border-radius: 12px; padding: 1.4rem 1.6rem;
+  display: flex; align-items: flex-start; gap: 1.2rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  animation: cardRise 0.7s cubic-bezier(0.22,1,0.36,1) both;
+}
+.need-card:hover {
+  border-color: rgba(150,80,240,0.52);
+  box-shadow: 0 0 25px rgba(90,30,190,0.12);
+}
+
+/* urgency accent bar */
+.urgency-bar {
+  width: 3px; border-radius: 3px; align-self: stretch; flex-shrink: 0;
+}
+.urgency-high   { background: rgba(240,100,100,0.75); box-shadow: 0 0 8px rgba(240,80,80,0.35); }
+.urgency-medium { background: rgba(240,180,60,0.75);  box-shadow: 0 0 8px rgba(220,160,40,0.30); }
+.urgency-low    { background: rgba(80,180,120,0.75);  box-shadow: 0 0 8px rgba(60,180,100,0.25); }
+/* ── Progress bar ── */
+.need-progress { margin-top: 0.5rem; }
+.need-progress-label { font-size: 0.60rem; color: var(--text-muted); letter-spacing: 0.08em; margin-bottom: 0.25rem; }
+.need-progress-bar { height: 3px; background: rgba(100,40,200,0.12); border-radius: 3px; overflow: hidden; }
+.need-progress-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent-purple), rgba(200,168,240,0.5)); transition: width 0.7s cubic-bezier(0.22,1,0.36,1); }
+
+
+.need-body { flex: 1; min-width: 0; }
+.need-top  { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 0.5rem; }
+.need-title {
+  font-family: var(--font-display); font-size: 1rem; font-weight: 600;
+  letter-spacing: 0.10em; color: var(--text-primary); line-height: 1.3;
+}
+.need-desc {
+  font-size: 0.76rem; color: var(--text-body); line-height: 1.55;
+  letter-spacing: 0.02em; margin-bottom: 0.9rem;
+}
+.need-meta { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.need-date { font-size: 0.62rem; color: var(--text-muted); letter-spacing: 0.08em; }
+
+/* status badges */
+.status-badge {
+  font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 0.2rem 0.6rem; border-radius: 3px;
+}
+.status-open {
+  color: rgba(120,220,150,0.85); border: 1px solid rgba(60,180,100,0.30);
+  background: rgba(20,80,45,0.15);
+}
+.status-fulfilled {
+  color: rgba(140,175,240,0.80); border: 1px solid rgba(60,120,220,0.28);
+  background: rgba(20,50,120,0.15);
+}
+.status-closed {
+  color: rgba(160,140,180,0.60); border: 1px solid rgba(100,80,160,0.20);
+  background: rgba(40,20,80,0.10);
+}
+
+/* urgency badges */
+.urgency-badge {
+  font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 0.2rem 0.6rem; border-radius: 3px;
+}
+.urgency-badge.high   { color: rgba(240,130,130,0.85); border: 1px solid rgba(200,70,70,0.30); background: rgba(100,15,15,0.15); }
+.urgency-badge.medium { color: rgba(240,200,100,0.85); border: 1px solid rgba(200,160,50,0.30); background: rgba(80,60,10,0.15); }
+.urgency-badge.low    { color: rgba(120,220,150,0.85); border: 1px solid rgba(60,180,100,0.30); background: rgba(20,80,45,0.15); }
+
+/* quantity pill */
+.qty-pill {
+  font-family: var(--font-display); font-size: 0.78rem;
+  color: var(--accent-purple); letter-spacing: 0.06em;
+}
+
+/* action buttons on each card */
+.need-actions { display: flex; flex-direction: column; gap: 0.5rem; flex-shrink: 0; }
+.action-btn {
+  font-family: var(--font-body); font-size: 0.60rem; letter-spacing: 0.14em;
+  text-transform: uppercase; padding: 0.45rem 0.9rem; border-radius: 2px;
+  cursor: pointer; transition: all 0.25s; white-space: nowrap;
+}
+.action-edit {
+  color: rgba(150,185,240,0.75); background: transparent;
+  border: 1px solid rgba(50,100,200,0.28);
+}
+.action-edit:hover { background: rgba(30,70,180,0.12); border-color: rgba(80,150,240,0.60); color: var(--accent-blue); }
+.action-fulfill {
+  color: rgba(120,220,150,0.80); background: transparent;
+  border: 1px solid rgba(60,180,100,0.28);
+}
+.action-fulfill:hover { background: rgba(20,80,45,0.12); border-color: rgba(80,200,120,0.55); }
+.action-delete {
+  color: rgba(240,130,130,0.70); background: transparent;
+  border: 1px solid rgba(200,70,70,0.22);
+}
+.action-delete:hover { background: rgba(100,15,15,0.12); border-color: rgba(230,80,80,0.50); }
+
+/* ── Empty state ── */
+.empty-state { text-align: center; padding: 4rem 2rem; }
+.empty-icon  { font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.45; }
+.empty-title {
+  font-family: var(--font-display); font-size: 1.4rem; font-weight: 400;
+  letter-spacing: 0.14em; color: var(--text-primary); margin-bottom: 0.6rem; opacity: 0.8;
+}
+.empty-sub { font-size: 0.76rem; color: var(--text-muted); line-height: 1.6; }
+
+/* ── Shimmer ── */
+.shimmer-row {
+  height: 100px; border-radius: 12px;
+  background: linear-gradient(90deg, rgba(30,10,70,0.2) 25%, rgba(50,15,110,0.28) 50%, rgba(30,10,70,0.2) 75%);
+  background-size: 200% 100%; animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+/* ── Edit modal ── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.78); backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.3s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-box {
+  background: linear-gradient(145deg, #0e0620, #080416);
+  border: 1px solid rgba(120,60,200,0.40); border-radius: 14px;
+  padding: 2.2rem; width: 100%; max-width: 500px;
+  transform: translateY(20px); transition: transform 0.4s cubic-bezier(0.22,1,0.36,1);
+  box-shadow: 0 0 60px rgba(80,20,200,0.15);
+  max-height: 90vh; overflow-y: auto;
+}
+.modal-overlay.open .modal-box { transform: translateY(0); }
+.modal-title {
+  font-family: var(--font-display); font-size: 1.3rem; font-weight: 400;
+  letter-spacing: 0.14em; color: var(--text-primary); margin-bottom: 1.4rem;
+  text-shadow: 0 0 10px rgba(255,255,255,0.5);
+}
+.modal-actions { display: flex; gap: 0.6rem; margin-top: 1.2rem; justify-content: flex-end; }
+.modal-cancel {
+  font-family: var(--font-body); font-size: 0.68rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--text-muted); background: transparent;
+  border: 1px solid rgba(80,60,160,0.22); padding: 0.75rem 1.2rem;
+  border-radius: 2px; cursor: pointer; transition: all 0.2s;
+}
+.modal-cancel:hover { border-color: rgba(100,80,200,0.40); color: rgba(180,160,235,0.7); }
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<div class="page-shell">
+  <nav class="nav">
+    <a href="../index.html" class="nav-logo">ImpactLink</a>
+    <div class="nav-links">
+      <a href="profile.html"   class="nav-link">Profile</a>
+      <a href="dashboard.html" class="nav-link">Dashboard</a>
+      <a href="needs.html"     class="nav-link active">Needs</a>
+      <a href="donors.html"    class="nav-link">Donors</a>
+      <button class="nav-link logout" onclick="handleLogout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page-content">
+
+    <!-- Hero -->
+    <div class="hero">
+      <div>
+        <div class="display-heading hero-title">Needs List</div>
+        <div class="sub-heading" style="margin-top:0.4rem;">Post and manage what your organization requires</div>
+      </div>
+    </div>
+
+    <!-- Add / Edit form -->
+    <div class="form-card" id="form-card">
+      <div class="form-card-title" id="form-title">Post a New Need</div>
+      <div class="glow-line-purple" style="margin-bottom:1.4rem;"></div>
+
+      <div class="form-grid">
+        <div class="input-group span-2">
+          <label class="input-label">Title</label>
+          <input class="input-field" id="f-title" type="text" placeholder="e.g. School stationery, Filtered water units…"/>
+        </div>
+        <div class="input-group span-2">
+          <label class="input-label">Description</label>
+          <textarea class="input-field" id="f-desc" placeholder="Describe what you need and why it matters…"></textarea>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Quantity</label>
+          <input class="input-field" id="f-qty" type="number" min="1" placeholder="e.g. 100"/>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Unit</label>
+          <input class="input-field" id="f-unit" type="text" placeholder="e.g. boxes, kg, PKR…"/>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Urgency</label>
+          <select class="input-field" id="f-urgency">
+            <option value="high">High — Urgent</option>
+            <option value="medium" selected>Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+        <div class="input-group" id="status-group" style="display:none;">
+          <label class="input-label">Status</label>
+          <select class="input-field" id="f-status">
+            <option value="Open">Open</option>
+            <option value="Fulfilled">Fulfilled</option>
+            <option value="Closed">Closed</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="form-error" class="error-text" style="display:none;margin-bottom:0.6rem;"></div>
+      <div class="form-actions">
+        <button class="btn btn-sm" id="cancel-edit-btn" style="display:none;color:var(--text-muted);background:transparent;border:1px solid rgba(80,60,160,0.22);" onclick="cancelEdit()">Cancel</button>
+        <button class="btn btn-purple btn-sm" id="submit-btn" onclick="handleSubmit()">Post Need</button>
+      </div>
+    </div>
+
+    <!-- Filter tabs + list header -->
+    <div class="section-header">
+      <div class="section-title">Posted Needs</div>
+      <div id="needs-count" style="font-size:0.68rem;color:var(--text-muted);letter-spacing:0.10em;"></div>
+    </div>
+
+    <div class="filter-tabs">
+      <button class="filter-tab active" onclick="setFilter('all', this)">All</button>
+      <button class="filter-tab" onclick="setFilter('Open', this)">Open</button>
+      <button class="filter-tab" onclick="setFilter('Fulfilled', this)">Fulfilled</button>
+      <button class="filter-tab" onclick="setFilter('Closed', this)">Closed</button>
+    </div>
+
+    <!-- Needs list -->
+    <div class="needs-list" id="needs-list">
+      <div class="shimmer-row"></div>
+      <div class="shimmer-row"></div>
+      <div class="shimmer-row"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script src="../js/api.js"></script>
+<script>
+/* ── Canvas swirl ── */
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resize(); window.addEventListener('resize', resize);
+const ARCS = [
+  { a0:3.9,  a1:5.5,  r:0.44, lw:90,  alpha:0.07, blur:55, color:'80,20,180' },
+  { a0:3.95, a1:5.45, r:0.43, lw:35,  alpha:0.13, blur:28, color:'100,35,200' },
+  { a0:4.0,  a1:5.4,  r:0.42, lw:9,   alpha:0.38, blur:6,  color:'140,70,230' },
+  { a0:0.8,  a1:2.4,  r:0.38, lw:80,  alpha:0.06, blur:50, color:'70,15,165' },
+  { a0:0.9,  a1:2.3,  r:0.36, lw:8,   alpha:0.30, blur:6,  color:'130,60,220' },
+  { a0:4.05, a1:4.65, r:0.42, lw:2,   alpha:0.60, blur:2,  color:'180,130,255' },
+];
+function drawSwirl() {
+  const W=canvas.width,H=canvas.height,cx=W*0.5,cy=H*0.5,b=Math.min(W,H);
+  ctx.clearRect(0,0,W,H);
+  ARCS.forEach(a=>{
+    ctx.save(); ctx.filter=`blur(${a.blur}px)`;
+    ctx.strokeStyle=`rgba(${a.color},${a.alpha})`;
+    ctx.lineWidth=a.lw; ctx.lineCap='round';
+    ctx.beginPath(); ctx.arc(cx,cy,a.r*b,a.a0,a.a1); ctx.stroke(); ctx.restore();
+  });
+}
+drawSwirl();
+
+/* ── Auth ── */
+const session = api.ngo.requireAuth(); if (!session) throw 0;
+function handleLogout() { api.ngo.logout(); window.location.href = '../pages/login.html'; }
+
+/* ── State ── */
+let allNeeds    = [];
+let currentFilter = 'all';
+let editingId   = null;
+
+/* ── Toast ── */
+function showToast(msg, type='success') {
+  const tc = document.getElementById('toast-container');
+  const t  = document.createElement('div');
+  t.className = `toast toast-${type}`; t.textContent = msg; tc.appendChild(t);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
+  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),400); },3000);
+}
+
+/* ── Filter ── */
+function setFilter(val, btn) {
+  currentFilter = val;
+  document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderNeeds();
+}
+
+/* ── Render needs list ── */
+function renderNeeds() {
+  const list = document.getElementById('needs-list');
+  const filtered = currentFilter === 'all'
+    ? allNeeds
+    : allNeeds.filter(n => n.status === currentFilter);
+
+  document.getElementById('needs-count').textContent =
+    filtered.length + ' need' + (filtered.length !== 1 ? 's' : '');
+
+  if (!filtered.length) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <div class="empty-title">${currentFilter === 'all' ? 'No Needs Posted' : 'Nothing Here'}</div>
+        <div class="empty-sub">${currentFilter === 'all'
+          ? 'Use the form above to post your first need.'
+          : 'No needs with this status yet.'}</div>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = '';
+  filtered.forEach((need, i) => {
+    const card = document.createElement('div');
+    card.className = 'need-card';
+    card.style.animationDelay = (0.04 + i * 0.06) + 's';
+
+    const urgency   = (need.urgency || 'medium').toLowerCase();
+    const statusCls = 'status-' + (need.status || 'Open').toLowerCase();
+    const isFulfilled = need.status === 'Fulfilled' || need.status === 'Closed';
+
+    const pledged  = need.pledged || 0;
+    const qty      = need.quantity || 1;
+    const pct      = qty > 0 ? Math.min(100, Math.round(pledged / qty * 100)) : 0;
+    // Use numeric id to avoid type issues
+    const nid = Number(need.id);
+    card.innerHTML = `
+      <div class="urgency-bar urgency-${urgency}"></div>
+      <div class="need-body">
+        <div class="need-top">
+          <div class="need-title">${need.title}</div>
+          <div style="display:flex;gap:0.4rem;flex-shrink:0;">
+            <span class="urgency-badge ${urgency}">${urgency}</span>
+            <span class="status-badge ${statusCls}">${need.status || 'Open'}</span>
+          </div>
+        </div>
+        <div class="need-desc">${need.description || '—'}</div>
+        <div class="need-meta">
+          <span class="qty-pill">Qty: ${need.quantity || '—'} ${need.unit || ''}</span>
+          <span class="need-date">Posted ${need.createdAt || '—'}</span>
+        </div>
+        <div class="need-progress">
+          <div class="need-progress-label">${pledged} / ${qty} committed · ${pct}%</div>
+          <div class="need-progress-bar"><div class="need-progress-fill" style="width:${pct}%"></div></div>
+        </div>
+      </div>
+      <div class="need-actions">
+        <button class="action-btn action-edit" onclick="startEdit(${nid})">Edit</button>
+        ${!isFulfilled ? `<button class="action-btn action-fulfill" onclick="markFulfilled(${nid})">Fulfilled</button>` : ''}
+        <button class="action-btn action-delete" onclick="deleteNeed(${nid})">Delete</button>
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+/* ── Submit (add or update) ── */
+async function handleSubmit() {
+  const title   = document.getElementById('f-title').value.trim();
+  const desc    = document.getElementById('f-desc').value.trim();
+  const qty     = document.getElementById('f-qty').value.trim();
+  const unit    = document.getElementById('f-unit').value.trim();
+  const urgency = document.getElementById('f-urgency').value;
+  const errEl   = document.getElementById('form-error');
+  const btn     = document.getElementById('submit-btn');
+
+  errEl.style.display = 'none';
+  if (!title) {
+    errEl.textContent = 'Please enter a title for this need.';
+    errEl.style.display = 'block'; return;
+  }
+
+  btn.innerHTML = '<span class="spinner"></span>';
+  btn.disabled  = true;
+
+  try {
+    if (editingId) {
+      const status = document.getElementById('f-status').value;
+      await api.ngo.updateNeed(Number(editingId), { title, description: desc, quantity: qty, unit, urgency, status });
+      showToast('Need updated.', 'success');
+      cancelEdit();
+    } else {
+      await api.ngo.addNeed({ title, description: desc, quantity: qty, unit, urgency });
+      showToast('Need posted!', 'success');
+      clearForm();
+    }
+    await reloadNeeds();
+  } catch(e) {
+    errEl.textContent = e.message; errEl.style.display = 'block';
+  } finally {
+    btn.innerHTML = editingId ? 'Save Changes' : 'Post Need';
+    btn.disabled  = false;
+  }
+}
+
+/* ── Edit ── */
+function startEdit(id) {
+  const need = allNeeds.find(n => Number(n.id) === Number(id));
+  if (!need) return;
+  editingId = id;
+
+  document.getElementById('f-title').value   = need.title || '';
+  document.getElementById('f-desc').value    = need.description || '';
+  document.getElementById('f-qty').value     = need.quantity || '';
+  document.getElementById('f-unit').value    = need.unit || '';
+  document.getElementById('f-urgency').value = need.urgency || 'medium';
+  document.getElementById('f-status').value  = need.status || 'Open';
+  document.getElementById('status-group').style.display = 'flex';
+  document.getElementById('form-title').textContent = 'Edit Need';
+  document.getElementById('submit-btn').textContent  = 'Save Changes';
+  document.getElementById('cancel-edit-btn').style.display = 'inline-flex';
+
+  // Scroll to form
+  document.getElementById('form-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function cancelEdit() {
+  editingId = null;
+  clearForm();
+  document.getElementById('status-group').style.display = 'none';
+  document.getElementById('form-title').textContent = 'Post a New Need';
+  document.getElementById('submit-btn').textContent  = 'Post Need';
+  document.getElementById('cancel-edit-btn').style.display = 'none';
+  document.getElementById('form-error').style.display = 'none';
+}
+
+function clearForm() {
+  ['f-title','f-desc','f-qty','f-unit'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-urgency').value = 'medium';
+}
+
+/* ── Mark fulfilled ── */
+async function markFulfilled(id) {
+  try {
+    await api.ngo.updateNeed(Number(id), { status: 'Fulfilled' });
+    showToast('Marked as fulfilled.', 'success');
+    await reloadNeeds();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+/* ── Delete ── */
+async function deleteNeed(id) {
+  if (!confirm('Delete this need? This cannot be undone.')) return;
+  try {
+    await api.ngo.deleteNeed(Number(id));
+    showToast('Need deleted.', 'success');
+    await reloadNeeds();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+/* ── Load ── */
+async function reloadNeeds() {
+  try {
+    allNeeds = await api.ngo.getNeeds();
+    renderNeeds();
+  } catch(e) {
+    document.getElementById('needs-list').innerHTML =
+      `<div class="empty-state"><div class="empty-sub">Failed to load needs.</div></div>`;
+  }
+}
+
+/* ── Init ── */
+reloadNeeds();
+</script>
+</body>
+</html>

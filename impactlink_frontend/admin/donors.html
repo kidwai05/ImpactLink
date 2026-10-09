@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>All Donors — ImpactLink Admin</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <style>
+        canvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .page-shell {
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-logo-admin {
+            font-family: var(--font-display);
+            font-size: 1.05rem;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            color: var(--text-primary);
+            text-shadow: 0 0 12px rgba(255,255,255,0.6), 0 0 30px rgba(255,140,140,0.25);
+            text-decoration: none;
+        }
+
+        .admin-badge {
+            font-family: var(--font-body);
+            font-size: 0.55rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: rgba(240,130,130,0.7);
+            border: 1px solid rgba(200,60,60,0.30);
+            border-radius: 3px;
+            padding: 0.18rem 0.5rem;
+            margin-left: 0.6rem;
+            vertical-align: middle;
+        }
+
+        /* ── Hero ── */
+        .hero {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            padding-bottom: 1.8rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(40,80,180,0.14);
+            animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.1s both;
+        }
+
+        .hero-title {
+            font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+            margin-bottom: 0.3rem;
+        }
+
+        /* ── Stat strip ── */
+        .stat-strip {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.16s both;
+        }
+
+        .stat-box {
+            flex: 1;
+            background: linear-gradient(145deg, rgba(10,20,50,0.6), rgba(6,12,30,0.6));
+            border: 1px solid rgba(40,80,180,0.20);
+            border-radius: 10px;
+            padding: 1rem 1.3rem;
+            transition: border-color 0.3s;
+        }
+
+            .stat-box:hover {
+                border-color: rgba(60,130,240,0.40);
+            }
+
+        .stat-num {
+            font-family: var(--font-display);
+            font-size: 1.7rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+            text-shadow: 0 0 12px rgba(122,171,238,0.5);
+            line-height: 1;
+        }
+
+            .stat-num.green {
+                color: rgba(100,210,140,0.9);
+                text-shadow: 0 0 12px rgba(60,200,100,0.3);
+            }
+
+            .stat-num.purple {
+                color: var(--accent-purple);
+                text-shadow: 0 0 12px rgba(200,168,240,0.3);
+            }
+
+        .stat-label {
+            font-size: 0.60rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-top: 0.4rem;
+        }
+
+        /* ── Toolbar ── */
+        .toolbar {
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+            margin-bottom: 1.4rem;
+            flex-wrap: wrap;
+            animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.22s both;
+        }
+
+        .search-wrap {
+            position: relative;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.85rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            pointer-events: none;
+        }
+
+        .search-input {
+            font-family: var(--font-body);
+            font-size: 0.82rem;
+            color: var(--text-primary);
+            background: rgba(10,14,30,0.80);
+            border: 1px solid rgba(50,100,200,0.22);
+            border-radius: 4px;
+            padding: 0.65rem 1rem 0.65rem 2.4rem;
+            outline: none;
+            width: 100%;
+            transition: border-color 0.25s;
+        }
+
+            .search-input::placeholder {
+                color: rgba(120,150,200,0.35);
+            }
+
+            .search-input:focus {
+                border-color: rgba(60,130,240,0.55);
+            }
+
+        .filter-select {
+            font-family: var(--font-body);
+            font-size: 0.72rem;
+            letter-spacing: 0.10em;
+            color: var(--text-muted);
+            background: rgba(10,14,30,0.80);
+            border: 1px solid rgba(50,100,200,0.22);
+            border-radius: 4px;
+            padding: 0.65rem 1rem;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.25s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+            .filter-select:focus {
+                border-color: rgba(60,130,240,0.55);
+                color: var(--text-primary);
+            }
+
+            .filter-select option {
+                background: #0a0e1a;
+            }
+
+        .result-count {
+            font-size: 0.65rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        /* ── Table ── */
+        .table-wrap {
+            background: linear-gradient(145deg, #0a0e1a, #080c18);
+            border: 1px solid rgba(40,80,180,0.22);
+            border-radius: 12px;
+            overflow: hidden;
+            animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.28s both;
+        }
+
+        .table-head {
+            display: grid;
+            grid-template-columns: 2fr 1.2fr 1fr 1fr 90px 80px;
+            padding: 0.7rem 1.4rem;
+            border-bottom: 1px solid rgba(40,80,180,0.18);
+            background: rgba(10,18,45,0.50);
+        }
+
+        .th {
+            font-family: var(--font-body);
+            font-size: 0.58rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.2s;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+            .th:hover {
+                color: var(--accent-blue);
+            }
+
+            .th.sorted {
+                color: var(--accent-blue);
+            }
+
+        .table-body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .donor-row {
+            display: grid;
+            grid-template-columns: 2fr 1.2fr 1fr 1fr 90px 80px;
+            padding: 0.95rem 1.4rem;
+            align-items: center;
+            border-bottom: 1px solid rgba(40,80,180,0.08);
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+            .donor-row:last-child {
+                border-bottom: none;
+            }
+
+            .donor-row:hover {
+                background: rgba(30,60,160,0.07);
+            }
+
+        /* Cells */
+        .cell-donor {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            min-width: 0;
+        }
+
+        .donor-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+            background: rgba(20,40,90,0.35);
+            border: 1px solid rgba(40,80,180,0.25);
+        }
+
+        .donor-name {
+            font-family: var(--font-display);
+            font-size: 0.88rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .donor-email {
+            font-size: 0.60rem;
+            color: var(--text-muted);
+            margin-top: 0.18rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .cell-text {
+            font-size: 0.74rem;
+            color: rgba(190,180,230,0.75);
+        }
+
+        .cell-num {
+            font-family: var(--font-display);
+            font-size: 0.88rem;
+            color: var(--accent-blue);
+        }
+
+        .cell-money {
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            color: rgba(100,210,140,0.85);
+        }
+
+        /* Type badge */
+        .type-pill {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.57rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: 0.20rem 0.55rem;
+            border-radius: 20px;
+        }
+
+        /* Preference tags */
+        .pref-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+        }
+
+        .pref-tag {
+            font-size: 0.58rem;
+            letter-spacing: 0.10em;
+            text-transform: uppercase;
+            padding: 0.15rem 0.45rem;
+            border-radius: 3px;
+            color: rgba(150,185,240,0.70);
+            border: 1px solid rgba(40,80,180,0.22);
+            background: rgba(15,35,90,0.18);
+        }
+
+        /* Empty / Shimmer */
+        .empty-row {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+            font-size: 0.76rem;
+            letter-spacing: 0.08em;
+        }
+
+        .shimmer-row {
+            height: 62px;
+            background: linear-gradient(90deg, rgba(20,35,90,0.15) 25%, rgba(30,55,140,0.22) 50%, rgba(20,35,90,0.15) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-bottom: 1px solid rgba(40,80,180,0.08);
+        }
+
+        @keyframes shimmer {
+            to {
+                background-position: -200% 0;
+            }
+        }
+
+        /* ── Detail Drawer ── */
+        .drawer-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(0,0,0,0.70);
+            backdrop-filter: blur(6px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+            .drawer-overlay.open {
+                opacity: 1;
+                pointer-events: all;
+            }
+
+        .drawer {
+            width: 360px;
+            height: 100%;
+            overflow-y: auto;
+            background: linear-gradient(180deg, #0a0e1e, #060a16);
+            border-left: 1px solid rgba(40,80,180,0.30);
+            padding: 2rem 1.8rem;
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.22,1,0.36,1);
+            box-shadow: -20px 0 60px rgba(10,30,100,0.20);
+        }
+
+        .drawer-overlay.open .drawer {
+            transform: translateX(0);
+        }
+
+        .drawer-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-family: var(--font-body);
+            font-size: 0.65rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            background: transparent;
+            border: 1px solid rgba(40,80,180,0.20);
+            padding: 0.4rem 0.8rem;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+            .drawer-close:hover {
+                color: var(--accent-blue);
+                border-color: rgba(60,130,240,0.40);
+            }
+
+        .drawer-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+            background: rgba(20,40,90,0.35);
+            border: 1px solid rgba(40,80,180,0.30);
+        }
+
+        .drawer-name {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 400;
+            letter-spacing: 0.14em;
+            color: var(--text-primary);
+            text-shadow: 0 0 8px rgba(255,255,255,0.35);
+            margin-bottom: 0.2rem;
+        }
+
+        .drawer-email {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            letter-spacing: 0.08em;
+            margin-bottom: 1.4rem;
+        }
+
+        .drawer-stat-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.7rem;
+            margin-bottom: 1.4rem;
+        }
+
+        .drawer-stat {
+            background: rgba(10,18,45,0.50);
+            border: 1px solid rgba(40,80,180,0.18);
+            border-radius: 8px;
+            padding: 0.8rem;
+            text-align: center;
+        }
+
+        .drawer-stat-num {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        .drawer-stat-lbl {
+            font-size: 0.58rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+
+        .drawer-section {
+            margin-bottom: 1.4rem;
+        }
+
+        .drawer-section-title {
+            font-size: 0.60rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 0.7rem;
+            padding-bottom: 0.4rem;
+            border-bottom: 1px solid rgba(40,80,180,0.14);
+        }
+
+        .drawer-field {
+            display: flex;
+            gap: 0.8rem;
+            padding: 0.4rem 0;
+        }
+
+        .df-label {
+            font-size: 0.62rem;
+            letter-spacing: 0.10em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            width: 80px;
+            flex-shrink: 0;
+            padding-top: 1px;
+        }
+
+        .df-value {
+            font-size: 0.78rem;
+            color: rgba(210,200,240,0.80);
+            flex: 1;
+            line-height: 1.5;
+        }
+
+        /* Donation history in drawer */
+        .don-item {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid rgba(40,80,180,0.08);
+        }
+
+            .don-item:last-child {
+                border-bottom: none;
+            }
+
+        .don-icon {
+            font-size: 1rem;
+            width: 28px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .don-org {
+            font-size: 0.76rem;
+            color: var(--text-primary);
+            font-family: var(--font-display);
+            letter-spacing: 0.06em;
+        }
+
+        .don-date {
+            font-size: 0.60rem;
+            color: var(--text-muted);
+            margin-top: 0.1rem;
+        }
+
+        .don-amt {
+            font-family: var(--font-display);
+            font-size: 0.82rem;
+            color: rgba(100,210,140,0.85);
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="c"></canvas>
+
+    <div class="page-shell">
+        <nav class="nav">
+            <a href="../index.html" class="nav-logo-admin">ImpactLink <span class="admin-badge">Admin</span></a>
+            <div class="nav-links">
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="verify.html" class="nav-link">Verify</a>
+                <a href="ngos.html" class="nav-link">NGOs</a>
+                <a href="donors.html" class="nav-link active">Donors</a>
+                <button class="nav-link logout" onclick="handleLogout()">Logout</button>
+            </div>
+        </nav>
+
+        <div class="page-content">
+
+            <div class="hero">
+                <div>
+                    <div class="display-heading hero-title">All Donors</div>
+                    <div class="sub-heading" style="margin-top:0.4rem;">All registered donor accounts</div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stat-strip">
+                <div class="stat-box"><div class="stat-num" id="s-total">—</div><div class="stat-label">Total Donors</div></div>
+                <div class="stat-box"><div class="stat-num" id="s-real">—</div><div class="stat-label">With Preferences</div></div>
+                <div class="stat-box"><div class="stat-num" id="s-active">—</div><div class="stat-label">Active Donors</div></div>
+                <div class="stat-box"><div class="stat-num green" id="s-raised">—</div><div class="stat-label">Total Commitments</div></div>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <div class="search-wrap">
+                    <span class="search-icon">⌕</span>
+                    <input class="search-input" id="search" type="text" placeholder="Search by name, email or preference…" oninput="applyFilters()" />
+                </div>
+                <select class="filter-select" id="filter-type" onchange="applyFilters()">
+                    <option value="">All Donors</option>
+                    <option value="has_prefs">Has Preferences</option>
+                    <option value="has_donations">Active (Has Donations)</option>
+                </select>
+                <select class="filter-select" id="filter-pref" onchange="applyFilters()">
+                    <option value="">All Preferences</option>
+                    <option>Education</option>
+                    <option>Health</option>
+                    <option>Environment</option>
+                    <option>Poverty</option>
+                    <option>Women</option>
+                    <option>Children</option>
+                    <option>Disaster</option>
+                    <option>Animals</option>
+                </select>
+                <div class="result-count" id="result-count"></div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-wrap">
+                <div class="table-head">
+                    <div class="th sorted" onclick="sortBy('name')">Donor ↕</div>
+                    <div class="th" onclick="sortBy('lastDonation')">Last Donation</div>
+                    <div class="th" onclick="sortBy('donations')">Donations</div>
+                    <div class="th" onclick="sortBy('totalDonated')">Total Given</div>
+                    <div class="th">Type</div>
+                    <div class="th" onclick="sortBy('joinedAt')">Joined</div>
+                </div>
+                <div class="table-body" id="table-body">
+                    <div class="shimmer-row"></div>
+                    <div class="shimmer-row"></div>
+                    <div class="shimmer-row"></div>
+                    <div class="shimmer-row"></div>
+                    <div class="shimmer-row"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Detail Drawer -->
+    <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer(event)">
+        <div class="drawer" id="drawer">
+            <button class="drawer-close" onclick="closeDrawerBtn()">✕ Close</button>
+            <div id="drawer-content"></div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="../js/api.js"></script>
+    <script>
+        /* ── Background ──────────────────────────────────────── */
+        const canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        resize(); window.addEventListener('resize', resize);
+        (function draw() {
+            const W = canvas.width, H = canvas.height, cx = W * .5, cy = H * .5, b = Math.min(W, H);
+            ctx.clearRect(0, 0, W, H);
+            [{ a0: 3.9, a1: 5.5, r: 0.44, lw: 90, alpha: 0.05, blur: 55, color: '20,55,160' }, { a0: 4.0, a1: 5.4, r: 0.42, lw: 9, alpha: 0.28, blur: 6, color: '55,115,230' }, { a0: 0.9, a1: 2.3, r: 0.36, lw: 8, alpha: 0.22, blur: 6, color: '50,105,220' }].forEach(a => {
+                ctx.save(); ctx.filter = `blur(${a.blur}px)`; ctx.strokeStyle = `rgba(${a.color},${a.alpha})`; ctx.lineWidth = a.lw; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(cx, cy, a.r * b, a.a0, a.a1); ctx.stroke(); ctx.restore();
+            });
+        })();
+
+        /* ── Auth ────────────────────────────────────────────── */
+        if (!api.admin.requireAuth()) throw 0;
+        function handleLogout() { api.admin.logout(); window.location.href = '../index.html'; }
+
+        function showToast(msg, type = 'success') {
+            const tc = document.getElementById('toast-container'), t = document.createElement('div');
+            t.className = `toast toast-${type}`; t.textContent = msg; tc.appendChild(t);
+            requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
+            setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3000);
+        }
+
+        const CAT_ICONS = { Education: '📚', Health: '💧', Environment: '🌱', Poverty: '🏠', Women: '✊', Children: '👦', Disaster: '🚨', Animals: '🐾', default: '🤝' };
+        function fmtMoney(n) { return n >= 1000000 ? (n / 1000000).toFixed(1) + 'M' : n >= 1000 ? (n / 1000).toFixed(0) + 'K' : n ? String(n) : '0'; }
+        function initials(name) { return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2); }
+
+        let allDonors = [], sortField = 'name', sortDir = 1;
+        // Donation history is loaded from backend per donor (no localStorage mock data)
+
+        /* ── Sort ─────────────────────────────────────────────── */
+        function sortBy(field) {
+            if (sortField === field) sortDir *= -1; else { sortField = field; sortDir = 1; }
+            document.querySelectorAll('.th').forEach(th => th.classList.remove('sorted'));
+            event.target.classList.add('sorted');
+            applyFilters();
+        }
+
+        /* ── Filter + render ──────────────────────────────────── */
+        function applyFilters() {
+            const q = document.getElementById('search').value.trim().toLowerCase();
+            const type = document.getElementById('filter-type').value;
+            const pref = document.getElementById('filter-pref').value;
+
+            let list = allDonors.filter(d => {
+                const matchQ = !q || d.name?.toLowerCase().includes(q) || d.email?.toLowerCase().includes(q) || (d.preferences || []).some(p => p.toLowerCase().includes(q));
+                const matchType = !type || (type === 'has_prefs' ? (d.preferences || []).length > 0 : type === 'has_donations' ? d.donations > 0 : true);
+                const matchPref = !pref || (d.preferences || []).includes(pref);
+                return matchQ && matchType && matchPref;
+            });
+
+            list.sort((a, b) => {
+                let av = a[sortField] ?? '', bv = b[sortField] ?? '';
+                if (typeof av === 'number') return (av - bv) * sortDir;
+                return String(av).localeCompare(String(bv)) * sortDir;
+            });
+
+            document.getElementById('result-count').textContent = list.length + ' donor' + (list.length !== 1 ? 's' : '');
+            renderTable(list);
+        }
+
+        /* ── Render table ─────────────────────────────────────── */
+        function renderTable(list) {
+            const body = document.getElementById('table-body');
+            if (!list.length) { body.innerHTML = `<div class="empty-row">No donors match your filters.</div>`; return; }
+
+            body.innerHTML = list.map(d => `
+        <div class="donor-row" onclick="openDrawer('${d.email}')">
+          <div class="cell-donor">
+            <div class="donor-avatar ">${initials(d.name)}</div>
+            <div style="min-width:0;">
+              <div class="donor-name">${d.name}</div>
+              <div class="donor-email">${d.email}</div>
+            </div>
+          </div>
+          <div class="cell-text">${d.lastDonation || '—'}</div>
+          <div class="cell-num">${d.donations || 0}</div>
+          <div class="cell-money">PKR ${fmtMoney(d.totalDonated || 0)}</div>
+          <div></div>
+          <div class="cell-text">${d.joinedAt || '—'}</div>
+        </div>`).join('');
+        }
+
+        /* ── Render stats ─────────────────────────────────────── */
+        function renderStats() {
+            const withPrefs = allDonors.filter(d => (d.preferences || []).length > 0);
+            const withDonation = allDonors.filter(d => d.donations > 0);
+            const total = allDonors.reduce((s, d) => s + (d.donations || 0), 0);
+            document.getElementById('s-total').textContent = allDonors.length;
+            document.getElementById('s-real').textContent = withPrefs.length;
+            document.getElementById('s-active').textContent = withDonation.length;
+            document.getElementById('s-raised').textContent = total;
+        }
+
+        /* ── Detail drawer ────────────────────────────────────── */
+        async function openDrawer(email) {
+            const d = allDonors.find(x => x.email === email);
+            if (!d) return;
+
+            // Show drawer immediately with loading state for history
+            const CAT_ICONS_local = CAT_ICONS;
+            document.getElementById('drawer-content').innerHTML = `
+        <div class="drawer-avatar">${initials(d.name)}</div>
+        <div class="drawer-name">${d.name}</div>
+        <div class="drawer-email">${d.email}</div>
+        <div class="drawer-stat-row">
+          <div class="drawer-stat">
+            <div class="drawer-stat-num">${d.donations || 0}</div>
+            <div class="drawer-stat-lbl">Donations</div>
+          </div>
+          <div class="drawer-stat">
+            <div class="drawer-stat-num">PKR ${fmtMoney(d.totalDonated || 0)}</div>
+            <div class="drawer-stat-lbl">Total Given</div>
+          </div>
+        </div>
+        <div class="drawer-section">
+          <div class="drawer-section-title">Profile</div>
+          <div class="drawer-field"><div class="df-label">Joined</div><div class="df-value">${d.joinedAt || '—'}</div></div>
+          <div class="drawer-field"><div class="df-label">Last Gift</div><div class="df-value">${d.lastDonation || '—'}</div></div>
+        </div>
+        ${(d.preferences || []).length ? `
+          <div class="drawer-section">
+            <div class="drawer-section-title">Cause Preferences</div>
+            <div class="pref-tags" style="gap:0.4rem;flex-wrap:wrap;display:flex;">
+              ${d.preferences.map(p => `<span class="pref-tag">${CAT_ICONS[p] || ''} ${p}</span>`).join('')}
+            </div>
+          </div>` : ''}
+        <div class="drawer-section" id="history-section">
+          <div class="drawer-section-title">Donation History</div>
+          <div style="font-size:0.74rem;color:var(--text-muted);padding:0.5rem 0;">Loading…</div>
+        </div>`;
+
+            document.getElementById('drawer-overlay').classList.add('open');
+
+            // Now fetch real history
+            try {
+                const dons = await api.admin.getDonorDonations(d.id);
+                const histSection = document.getElementById('history-section');
+                if (!histSection) return;
+                if (!dons.length) {
+                    histSection.innerHTML = `<div class="drawer-section-title">Donation History</div>
+            <div style="font-size:0.74rem;color:var(--text-muted);padding:0.5rem 0;">No donations recorded yet.</div>`;
+                    return;
+                }
+                histSection.innerHTML = `<div class="drawer-section-title">Donation History</div>` +
+                    dons.slice(0, 8).map(dn => {
+                        const hasAmt = dn.amount > 0;
+                        const hasItem = dn.item && dn.item.trim();
+                        const contrib = hasAmt && hasItem ? `PKR ${dn.amount.toLocaleString()} · 📦 ${dn.item}`
+                            : hasAmt ? `PKR ${dn.amount.toLocaleString()}`
+                                : hasItem ? `📦 ${dn.item}` : '—';
+                        return `<div class="don-item">
+              <div class="don-icon">🤝</div>
+              <div style="flex:1;min-width:0;">
+                <div class="don-org">${dn.need} <span style="opacity:0.55;font-size:0.68rem;">· ${dn.org}</span></div>
+                <div class="don-date">${dn.date} · <span style="color:rgba(180,200,240,0.6);">${dn.status}</span></div>
+                <div style="font-size:0.72rem;color:rgba(140,185,240,0.8);margin-top:0.15rem;">${contrib}</div>
+              </div>
+            </div>`;
+                    }).join('') +
+                    (dons.length > 8 ? `<div style="font-size:0.62rem;color:var(--text-muted);text-align:center;padding:0.6rem 0;">+${dons.length - 8} more donations</div>` : '');
+            } catch (e) {
+                const histSection = document.getElementById('history-section');
+                if (histSection) histSection.innerHTML = `<div class="drawer-section-title">Donation History</div>
+          <div style="font-size:0.74rem;color:var(--text-muted);">Could not load history.</div>`;
+            }
+        }
+
+        function closeDrawer(e) { if (e.target === document.getElementById('drawer-overlay')) closeDrawerBtn(); }
+        function closeDrawerBtn() { document.getElementById('drawer-overlay').classList.remove('open'); }
+
+        /* ── Load ─────────────────────────────────────────────── */
+        async function load() {
+            try {
+                allDonors = await api.admin.getAllDonors();
+                renderStats();
+                applyFilters();
+            } catch (e) {
+                showToast('Failed to load donors', 'error');
+            }
+        }
+
+        load();
+    </script>
+</body>
+</html>

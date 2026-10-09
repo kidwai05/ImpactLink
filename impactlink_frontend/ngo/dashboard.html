@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NGO Dashboard — ImpactLink</title>
+<link rel="stylesheet" href="../css/theme.css"/>
+<style>
+canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+.page-shell { position: relative; z-index: 1; }
+
+/* ── Hero ── */
+.dash-hero {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  padding-bottom: 1.8rem; margin-bottom: 2rem;
+  border-bottom: 1px solid rgba(120,60,200,0.12);
+  animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.1s both;
+}
+.dash-title { font-size: clamp(1.6rem, 3.5vw, 2.4rem); margin-bottom: 0.3rem; }
+.dash-sub   { margin-top: 0.4rem; }
+
+/* ── Stat strip ── */
+.stat-row {
+  display: flex; gap: 1rem; margin-bottom: 2rem;
+  animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.2s both;
+}
+.stat-box {
+  flex: 1;
+  background: linear-gradient(145deg, rgba(15,8,35,0.7), rgba(10,5,25,0.7));
+  border: 1px solid rgba(120,60,200,0.20);
+  border-radius: 10px; padding: 1rem 1.2rem; text-align: center;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.stat-box:hover { border-color: rgba(150,80,240,0.45); box-shadow: 0 0 20px rgba(100,40,200,0.10); }
+.stat-num {
+  font-family: var(--font-display); font-size: 1.7rem; font-weight: 600;
+  color: var(--accent-purple); text-shadow: 0 0 12px rgba(200,168,240,0.45);
+}
+.stat-label {
+  font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-muted); margin-top: 0.2rem;
+}
+
+/* ── Section header ── */
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.4rem;
+  animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.3s both;
+}
+.section-title {
+  font-family: var(--font-display); font-size: 1.2rem; font-weight: 400;
+  letter-spacing: 0.14em; color: var(--text-primary);
+  text-shadow: 0 0 8px rgba(255,255,255,0.4);
+}
+
+/* ── Donor grid ── */
+.donor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 1.2rem;
+  animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.35s both;
+}
+
+/* ── Donor card ── */
+.donor-card {
+  background: linear-gradient(145deg, #110820, #0c0518);
+  border: 1px solid rgba(120,60,200,0.28);
+  border-radius: 12px; padding: 1.5rem;
+  display: flex; flex-direction: column; gap: 0.9rem;
+  transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+  animation: cardRise 0.75s cubic-bezier(0.22,1,0.36,1) both;
+}
+.donor-card:hover {
+  border-color: rgba(160,90,240,0.60);
+  box-shadow: 0 0 30px rgba(100,40,200,0.14), 0 8px 30px rgba(0,0,0,0.25);
+  transform: translateY(-3px);
+}
+.donor-card.other {
+  background: linear-gradient(145deg, #0a0e1a, #070b16);
+  border-color: rgba(40,80,180,0.18);
+  opacity: 0.72;
+}
+.donor-card.other:hover { opacity: 1; border-color: rgba(60,120,230,0.45); box-shadow: 0 0 20px rgba(30,70,190,0.10); }
+
+/* card top row */
+.donor-top { display: flex; align-items: center; justify-content: space-between; }
+.donor-avatar {
+  width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 1.1rem; font-weight: 600;
+  color: var(--accent-purple);
+  background: rgba(80,20,160,0.20);
+  border: 1px solid rgba(140,70,220,0.30);
+}
+.donor-name-block { flex: 1; padding-left: 0.85rem; }
+.donor-name {
+  font-family: var(--font-display); font-size: 0.95rem; font-weight: 600;
+  letter-spacing: 0.10em; color: var(--text-primary); line-height: 1.3;
+}
+.donor-email { font-size: 0.63rem; color: var(--text-muted); letter-spacing: 0.06em; margin-top: 0.15rem; }
+
+/* score badge */
+.score-wrap { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+.score-val {
+  font-family: var(--font-display); font-size: 1.4rem; font-weight: 600;
+  color: var(--accent-purple); text-shadow: 0 0 10px rgba(200,168,240,0.5); line-height: 1;
+}
+.score-lbl { font-size: 0.52rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
+
+/* preference tags */
+.pref-row { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+/* location row */
+.loc-row {
+  display: flex; align-items: center; gap: 0.4rem;
+  font-size: 0.68rem; color: var(--text-muted); letter-spacing: 0.06em;
+}
+
+/* bottom stats */
+.donor-stats {
+  display: flex; gap: 1.2rem;
+  border-top: 1px solid rgba(100,40,200,0.10); padding-top: 0.85rem;
+}
+.d-stat { text-align: center; }
+.d-stat-num { font-family: var(--font-display); font-size: 0.95rem; color: rgba(200,175,240,0.85); }
+.d-stat-lbl { font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
+
+/* match highlight pills */
+.match-cat { background: rgba(80,20,160,0.20); border-color: rgba(140,70,220,0.40); color: var(--accent-purple); }
+.match-loc { background: rgba(20,60,160,0.20); border-color: rgba(60,120,220,0.40); color: var(--accent-blue); }
+
+/* ── Divider between matched / others ── */
+.other-divider {
+  display: flex; align-items: center; gap: 1rem;
+  margin: 3rem 0 1.6rem;
+}
+.other-divider-line { flex: 1; height: 1px; background: rgba(100,40,200,0.14); }
+.other-divider-text {
+  font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--text-muted); white-space: nowrap;
+}
+
+/* ── Empty state ── */
+.empty-state { text-align: center; padding: 4rem 2rem; }
+.empty-icon  { font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.45; }
+.empty-title {
+  font-family: var(--font-display); font-size: 1.4rem; font-weight: 400;
+  letter-spacing: 0.14em; color: var(--text-primary); margin-bottom: 0.6rem; opacity: 0.8;
+}
+.empty-sub { font-size: 0.76rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1.8rem; }
+
+/* ── Shimmer ── */
+.shimmer-card {
+  height: 200px; border-radius: 12px;
+  background: linear-gradient(90deg, rgba(30,10,70,0.2) 25%, rgba(50,15,110,0.28) 50%, rgba(30,10,70,0.2) 75%);
+  background-size: 200% 100%; animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+/* ── NGO info banner ── */
+.ngo-banner {
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(60,20,120,0.12);
+  border: 1px solid rgba(120,60,200,0.22);
+  border-radius: 10px; padding: 1rem 1.4rem;
+  margin-bottom: 2rem;
+  animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.15s both;
+}
+.banner-info { font-size: 0.76rem; color: rgba(190,165,235,0.70); letter-spacing: 0.06em; line-height: 1.6; }
+.banner-info strong { color: var(--accent-purple); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<div class="page-shell">
+  <nav class="nav">
+    <a href="../index.html" class="nav-logo">ImpactLink</a>
+    <div class="nav-links">
+      <a href="profile.html"   class="nav-link">Profile</a>
+      <a href="dashboard.html" class="nav-link active">Dashboard</a>
+      <a href="needs.html"     class="nav-link">Needs</a>
+      <a href="donors.html"    class="nav-link">Donors</a>
+      <button class="nav-link logout" onclick="handleLogout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page-content">
+
+    <!-- Hero -->
+    <div class="dash-hero">
+      <div>
+        <div class="display-heading dash-title" id="greeting">Dashboard</div>
+        <div class="sub-heading dash-sub">Donors matched to your cause and location</div>
+      </div>
+      <a href="profile.html" class="btn btn-purple btn-sm" style="text-decoration:none;">Edit Profile</a>
+    </div>
+
+    <!-- NGO info banner -->
+    <div class="ngo-banner" id="ngo-banner" style="display:none;">
+      <div class="banner-info">
+        <strong id="banner-name">—</strong> &nbsp;·&nbsp;
+        <span id="banner-cat">—</span> &nbsp;·&nbsp;
+        📍 <span id="banner-city">—</span>
+      </div>
+      <span class="tag" id="banner-verified">Pending Verification</span>
+    </div>
+
+    <!-- Stat strip -->
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-num" id="s-matched">—</div><div class="stat-label">Matched Donors</div></div>
+      <div class="stat-box"><div class="stat-num" id="s-committed">—</div><div class="stat-label">Committed Donors</div></div>
+      <div class="stat-box"><div class="stat-num" id="s-raised">—</div><div class="stat-label">Total Raised (PKR)</div></div>
+      <div class="stat-box"><div class="stat-num" id="s-needs">—</div><div class="stat-label">Open Needs</div></div>
+    </div>
+
+    <!-- Matched donors -->
+    <div class="section-header">
+      <div class="section-title">Matched Donors</div>
+    </div>
+
+    <div id="matched-area">
+      <div class="donor-grid">
+        <div class="shimmer-card"></div>
+        <div class="shimmer-card"></div>
+        <div class="shimmer-card"></div>
+      </div>
+    </div>
+
+    <!-- Other donors -->
+    <div id="others-area" style="display:none;">
+      <div class="other-divider">
+        <div class="other-divider-line"></div>
+        <div class="other-divider-text">Donors with different preferences</div>
+        <div class="other-divider-line"></div>
+      </div>
+      <div class="donor-grid" id="others-grid"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script src="../js/api.js"></script>
+<script>
+/* ── Canvas swirl ── */
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resize(); window.addEventListener('resize', resize);
+const ARCS = [
+  { a0:3.9,  a1:5.5,  r:0.44, lw:90,  alpha:0.07, blur:55, color:'80,20,180' },
+  { a0:3.95, a1:5.45, r:0.43, lw:35,  alpha:0.13, blur:28, color:'100,35,200' },
+  { a0:4.0,  a1:5.4,  r:0.42, lw:9,   alpha:0.38, blur:6,  color:'140,70,230' },
+  { a0:0.8,  a1:2.4,  r:0.38, lw:80,  alpha:0.06, blur:50, color:'70,15,165' },
+  { a0:0.85, a1:2.35, r:0.37, lw:32,  alpha:0.11, blur:24, color:'90,28,185' },
+  { a0:0.9,  a1:2.3,  r:0.36, lw:8,   alpha:0.30, blur:6,  color:'130,60,220' },
+  { a0:4.05, a1:4.65, r:0.42, lw:2,   alpha:0.60, blur:2,  color:'180,130,255' },
+];
+function drawSwirl() {
+  const W=canvas.width, H=canvas.height, cx=W*0.5, cy=H*0.5, b=Math.min(W,H);
+  ctx.clearRect(0,0,W,H);
+  ARCS.forEach(a => {
+    ctx.save(); ctx.filter=`blur(${a.blur}px)`;
+    ctx.strokeStyle=`rgba(${a.color},${a.alpha})`;
+    ctx.lineWidth=a.lw; ctx.lineCap='round';
+    ctx.beginPath(); ctx.arc(cx,cy,a.r*b,a.a0,a.a1); ctx.stroke(); ctx.restore();
+  });
+}
+drawSwirl();
+
+/* ── Auth ── */
+const session = api.ngo.requireAuth(); if (!session) throw 0;
+
+function handleLogout() { api.ngo.logout(); window.location.href = '../pages/login.html'; }
+
+function showToast(msg, type='success') {
+  const tc = document.getElementById('toast-container');
+  const t  = document.createElement('div');
+  t.className = `toast toast-${type}`; t.textContent = msg; tc.appendChild(t);
+  requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3000);
+}
+
+/* ── Build donor card ── */
+function buildCard(donor, i, isOther = false, ngoCategory, ngoCity) {
+  const card = document.createElement('div');
+  card.className = 'donor-card' + (isOther ? ' other' : '');
+  card.style.animationDelay = (0.05 + i * 0.07) + 's';
+
+  const initials = donor.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+  const catMatch = donor.preferences.includes(ngoCategory);
+  const locMatch = donor.locations.includes(ngoCity);
+
+  const prefTags = donor.preferences.map(p => {
+    const isMatch = p === ngoCategory;
+    return `<span class="tag ${isMatch ? 'match-cat' : ''}">${p}</span>`;
+  }).join('');
+
+  const locTags = donor.locations.map(l => {
+    const isMatch = l === ngoCity;
+    return `<span class="tag ${isMatch ? 'match-loc' : ''}" style="font-size:0.60rem;">${l}</span>`;
+  }).join('');
+
+  const scoreHtml = isOther
+    ? `<div class="score-wrap"><div class="score-val" style="color:rgba(100,140,220,0.5);font-size:1rem;">—</div><div class="score-lbl">Match</div></div>`
+    : `<div class="score-wrap"><div class="score-val">${donor.score}%</div><div class="score-lbl">Match</div></div>`;
+
+  card.innerHTML = `
+    <div class="donor-top">
+      <div class="donor-avatar">${initials}</div>
+      <div class="donor-name-block">
+        <div class="donor-name">${donor.name}</div>
+        <div class="donor-email">${donor.email}</div>
+      </div>
+      ${scoreHtml}
+    </div>
+    <div class="pref-row">${prefTags}</div>
+    <div class="loc-row">📍 ${locTags}</div>
+    <div class="donor-stats">
+      <div class="d-stat"><div class="d-stat-num">${donor.donations}</div><div class="d-stat-lbl">Donations</div></div>
+      <div class="d-stat"><div class="d-stat-num">PKR ${(donor.totalDonated/1000).toFixed(0)}K</div><div class="d-stat-lbl">Total Given</div></div>
+      <div class="d-stat"><div class="d-stat-num">${donor.lastDonation}</div><div class="d-stat-lbl">Last Active</div></div>
+    </div>`;
+  return card;
+}
+
+/* ── Render ── */
+function renderMatches(matched, others, ngoCategory, ngoCity) {
+  const area = document.getElementById('matched-area');
+
+  if (!matched.length && !others.length) {
+    area.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">✦</div>
+        <div class="empty-title">No Matches Found</div>
+        <div class="empty-sub">Complete your NGO profile with a category and city<br>so we can match you with relevant donors.</div>
+        <a href="profile.html" class="btn btn-purple" style="text-decoration:none;">Complete Profile</a>
+      </div>`;
+    return;
+  }
+
+  if (matched.length) {
+    const grid = document.createElement('div');
+    grid.className = 'donor-grid';
+    matched.forEach((d, i) => grid.appendChild(buildCard(d, i, false, ngoCategory, ngoCity)));
+    area.innerHTML = '';
+    area.appendChild(grid);
+  } else {
+    area.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">✦</div>
+        <div class="empty-title">No Direct Matches</div>
+        <div class="empty-sub">No donors currently match your category or location.<br>Browse all donors below or <a href="profile.html" style="color:var(--accent-purple);">update your profile</a>.</div>
+      </div>`;
+  }
+
+  if (others.length) {
+    const othersArea = document.getElementById('others-area');
+    const othersGrid = document.getElementById('others-grid');
+    othersGrid.innerHTML = '';
+    others.forEach((d, i) => othersGrid.appendChild(buildCard(d, i, true, ngoCategory, ngoCity)));
+    othersArea.style.display = 'block';
+  }
+}
+
+/* ── Load stats ── */
+async function loadStats(matchedCount) {
+  try {
+    const stats = await api.ngo.getStats();
+    document.getElementById('s-matched').textContent   = matchedCount ?? '—';
+    document.getElementById('s-committed').textContent = stats.totalDonors;
+    const raised = stats.totalRaised;
+    document.getElementById('s-raised').textContent = raised >= 1000 ? (raised/1000).toFixed(0)+'K' : raised || '0';
+    document.getElementById('s-needs').textContent  = stats.openNeeds;
+  } catch(e) {}
+}
+
+/* ── Main ── */
+(async () => {
+  document.getElementById('greeting').textContent = 'Welcome, ' + session.orgName;
+
+  // Load NGO profile for banner
+  try {
+    const profile = await api.ngo.getProfile();
+    const banner = document.getElementById('ngo-banner');
+    document.getElementById('banner-name').textContent     = profile.orgName  || session.orgName;
+    document.getElementById('banner-cat').textContent      = profile.category || 'No category set';
+    document.getElementById('banner-city').textContent     = profile.city     || 'No city set';
+    document.getElementById('banner-verified').textContent = profile.verified ? '✓ Verified' : 'Pending Verification';
+    if (profile.verified) {
+      document.getElementById('banner-verified').classList.add('tag-green');
+    }
+    banner.style.display = 'flex';
+
+    // Load donor matches using NGO category + city
+    try {
+      const { matched, others } = await api.ngo.getDonorMatches();
+      renderMatches(matched, others, profile.category, profile.city);
+      loadStats(matched.length);
+    } catch(e) {
+      document.getElementById('matched-area').innerHTML =
+        `<div class="empty-state"><div class="empty-sub">Failed to load donor matches.</div></div>`;
+      loadStats(0);
+    }
+
+  } catch(e) {
+    // No profile yet — show empty state
+    document.getElementById('matched-area').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">✦</div>
+        <div class="empty-title">Profile Not Set Up</div>
+        <div class="empty-sub">Set up your NGO profile first so we can match you with donors.</div>
+        <a href="profile.html" class="btn btn-purple" style="text-decoration:none;">Set Up Profile</a>
+      </div>`;
+    loadStats(0);
+  }
+})();
+</script>
+</body>
+</html>

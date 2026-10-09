@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>All NGOs — ImpactLink Admin</title>
+<link rel="stylesheet" href="../css/theme.css"/>
+<style>
+canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+.page-shell { position: relative; z-index: 1; }
+
+.nav-logo-admin {
+  font-family: var(--font-display); font-size: 1.05rem; font-weight: 600; letter-spacing: 0.18em;
+  color: var(--text-primary); text-shadow: 0 0 12px rgba(255,255,255,0.6), 0 0 30px rgba(255,140,140,0.25); text-decoration: none;
+}
+.admin-badge {
+  font-family: var(--font-body); font-size: 0.55rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: rgba(240,130,130,0.7); border: 1px solid rgba(200,60,60,0.30); border-radius: 3px;
+  padding: 0.18rem 0.5rem; margin-left: 0.6rem; vertical-align: middle;
+}
+
+/* ── Hero ── */
+.hero {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  padding-bottom: 1.8rem; margin-bottom: 2rem;
+  border-bottom: 1px solid rgba(40,80,180,0.14);
+  animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.1s both;
+}
+.hero-title { font-size: clamp(1.6rem, 3.5vw, 2.4rem); margin-bottom: 0.3rem; }
+
+/* ── Toolbar ── */
+.toolbar {
+  display: flex; gap: 0.8rem; align-items: center; margin-bottom: 1.6rem; flex-wrap: wrap;
+  animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.18s both;
+}
+.search-wrap { position: relative; flex: 1; min-width: 200px; }
+.search-icon { position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.85rem; pointer-events: none; }
+.search-input {
+  font-family: var(--font-body); font-size: 0.82rem; color: var(--text-primary);
+  background: rgba(10,14,30,0.80); border: 1px solid rgba(50,100,200,0.22);
+  border-radius: 4px; padding: 0.65rem 1rem 0.65rem 2.4rem; outline: none; width: 100%;
+  transition: border-color 0.25s;
+}
+.search-input::placeholder { color: rgba(120,150,200,0.35); }
+.search-input:focus { border-color: rgba(60,130,240,0.55); }
+
+.filter-select {
+  font-family: var(--font-body); font-size: 0.72rem; letter-spacing: 0.10em;
+  color: var(--text-muted); background: rgba(10,14,30,0.80);
+  border: 1px solid rgba(50,100,200,0.22); border-radius: 4px;
+  padding: 0.65rem 1rem; outline: none; cursor: pointer;
+  transition: border-color 0.25s; -webkit-appearance: none; appearance: none;
+}
+.filter-select:focus { border-color: rgba(60,130,240,0.55); color: var(--text-primary); }
+.filter-select option { background: #0a0e1a; }
+
+.result-count { font-size: 0.65rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; }
+
+/* ── Table ── */
+.table-wrap {
+  background: linear-gradient(145deg, #0a0e1a, #080c18);
+  border: 1px solid rgba(40,80,180,0.22); border-radius: 12px; overflow: hidden;
+  animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.25s both;
+}
+
+.table-head {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 80px 90px 90px 100px;
+  gap: 0; padding: 0.7rem 1.4rem;
+  border-bottom: 1px solid rgba(40,80,180,0.18);
+  background: rgba(10,18,45,0.50);
+}
+.th {
+  font-family: var(--font-body); font-size: 0.58rem; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--text-muted); cursor: pointer; transition: color 0.2s; user-select: none;
+  display: flex; align-items: center; gap: 0.3rem;
+}
+.th:hover { color: var(--accent-blue); }
+.th.sorted { color: var(--accent-blue); }
+
+.table-body { display: flex; flex-direction: column; }
+
+.ngo-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 80px 90px 90px 100px;
+  gap: 0; padding: 1rem 1.4rem; align-items: center;
+  border-bottom: 1px solid rgba(40,80,180,0.08);
+  transition: background 0.2s;
+}
+.ngo-row:last-child { border-bottom: none; }
+.ngo-row:hover { background: rgba(30,60,160,0.06); }
+
+/* Cells */
+.cell-org { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+.org-logo  {
+  width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+  background: rgba(20,40,90,0.25); border: 1px solid rgba(40,80,180,0.20);
+}
+.org-name  { font-family: var(--font-display); font-size: 0.88rem; font-weight: 600; letter-spacing: 0.08em; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.org-email { font-size: 0.60rem; color: var(--text-muted); margin-top: 0.18rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.cell-text { font-size: 0.76rem; color: rgba(190,180,230,0.75); }
+.cell-num  { font-family: var(--font-display); font-size: 0.88rem; color: var(--accent-blue); }
+.cell-money{ font-family: var(--font-display); font-size: 0.82rem; color: rgba(100,210,140,0.85); }
+
+/* Status badge */
+.status-pill {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 0.22rem 0.6rem; border-radius: 20px;
+}
+.pill-verified { color: rgba(100,210,140,0.85); border: 1px solid rgba(60,180,100,0.35); background: rgba(20,80,45,0.15); }
+.pill-pending  { color: rgba(240,190,80,0.85);  border: 1px solid rgba(200,150,40,0.35); background: rgba(80,60,10,0.15); }
+
+/* Row actions */
+.row-actions { display: flex; gap: 0.4rem; justify-content: flex-end; }
+.row-btn {
+  font-family: var(--font-body); font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 0.32rem 0.65rem; border-radius: 3px; cursor: pointer; transition: all 0.22s; border: 1px solid;
+}
+.row-verify { color: rgba(100,210,140,0.85); border-color: rgba(60,180,100,0.30); background: rgba(20,80,45,0.10); }
+.row-verify:hover { background: rgba(30,100,55,0.22); border-color: rgba(80,210,130,0.60); }
+.row-reject { color: rgba(240,130,130,0.75); border-color: rgba(200,60,60,0.25); background: rgba(50,10,10,0.10); }
+.row-reject:hover { background: rgba(80,15,15,0.22); border-color: rgba(240,100,100,0.55); }
+
+/* Empty / Shimmer */
+.empty-row { text-align: center; padding: 4rem 2rem; color: var(--text-muted); font-size: 0.76rem; letter-spacing: 0.08em; }
+.shimmer-row { height: 62px; margin: 0; background: linear-gradient(90deg, rgba(20,35,90,0.15) 25%, rgba(30,55,140,0.22) 50%, rgba(20,35,90,0.15) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-bottom: 1px solid rgba(40,80,180,0.08); }
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+/* Detail drawer / modal */
+.drawer-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.70); backdrop-filter: blur(6px);
+  opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  display: flex; justify-content: flex-end;
+}
+.drawer-overlay.open { opacity: 1; pointer-events: all; }
+.drawer {
+  width: 360px; height: 100%; overflow-y: auto;
+  background: linear-gradient(180deg, #0a0e1e, #060a16);
+  border-left: 1px solid rgba(40,80,180,0.30);
+  padding: 2rem 1.8rem;
+  transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.22,1,0.36,1);
+  box-shadow: -20px 0 60px rgba(10,30,100,0.20);
+}
+.drawer-overlay.open .drawer { transform: translateX(0); }
+.drawer-close {
+  position: absolute; top: 1rem; right: 1rem;
+  font-family: var(--font-body); font-size: 0.65rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-muted); background: transparent; border: 1px solid rgba(40,80,180,0.20);
+  padding: 0.4rem 0.8rem; border-radius: 3px; cursor: pointer; transition: all 0.2s;
+}
+.drawer-close:hover { color: var(--accent-blue); border-color: rgba(60,130,240,0.40); }
+.drawer-title { font-family: var(--font-display); font-size: 1.3rem; font-weight: 400; letter-spacing: 0.14em; color: var(--text-primary); text-shadow: 0 0 8px rgba(255,255,255,0.4); margin-bottom: 0.3rem; margin-top: 2rem; }
+.drawer-sub   { font-size: 0.65rem; color: var(--text-muted); letter-spacing: 0.10em; margin-bottom: 1.4rem; }
+.drawer-section { margin-bottom: 1.4rem; }
+.drawer-section-title { font-size: 0.60rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.7rem; padding-bottom: 0.4rem; border-bottom: 1px solid rgba(40,80,180,0.14); }
+.drawer-field { display: flex; gap: 0.8rem; padding: 0.45rem 0; }
+.df-label { font-size: 0.62rem; letter-spacing: 0.10em; text-transform: uppercase; color: var(--text-muted); width: 80px; flex-shrink: 0; padding-top: 1px; }
+.df-value { font-size: 0.78rem; color: rgba(210,200,240,0.80); flex: 1; line-height: 1.5; }
+.drawer-stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; margin-bottom: 1rem; }
+.drawer-stat { background: rgba(10,18,45,0.50); border: 1px solid rgba(40,80,180,0.18); border-radius: 8px; padding: 0.8rem; text-align: center; }
+.drawer-stat-num { font-family: var(--font-display); font-size: 1.2rem; font-weight: 600; color: var(--accent-blue); }
+.drawer-stat-lbl { font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-top: 0.2rem; }
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<div class="page-shell">
+  <nav class="nav">
+    <a href="../index.html" class="nav-logo-admin">ImpactLink <span class="admin-badge">Admin</span></a>
+    <div class="nav-links">
+      <a href="dashboard.html" class="nav-link">Dashboard</a>
+      <a href="verify.html"    class="nav-link">Verify</a>
+      <a href="ngos.html"      class="nav-link active">NGOs</a>
+      <a href="donors.html" class="nav-link">Donors</a>
+      <button class="nav-link logout" onclick="handleLogout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page-content">
+
+    <div class="hero">
+      <div>
+        <div class="display-heading hero-title">All Organizations</div>
+        <div class="sub-heading" style="margin-top:0.4rem;">Registered NGOs with status &amp; activity</div>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input class="search-input" id="search" type="text" placeholder="Search by name, category or city…" oninput="applyFilters()"/>
+      </div>
+      <select class="filter-select" id="filter-status" onchange="applyFilters()">
+        <option value="">All Statuses</option>
+        <option value="verified">Verified</option>
+        <option value="pending">Pending</option>
+      </select>
+      <select class="filter-select" id="filter-cat" onchange="applyFilters()">
+        <option value="">All Categories</option>
+        <option>Education</option><option>Health</option><option>Environment</option>
+        <option>Poverty</option><option>Women</option><option>Children</option>
+        <option>Disaster</option><option>Animals</option>
+      </select>
+      <div class="result-count" id="result-count"></div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <div class="table-head">
+        <div class="th sorted" onclick="sortBy('orgName')">Organization ↕</div>
+        <div class="th" onclick="sortBy('category')">Category</div>
+        <div class="th" onclick="sortBy('city')">City</div>
+        <div class="th" onclick="sortBy('donorCount')">Donors</div>
+        <div class="th" onclick="sortBy('totalRaised')">Raised</div>
+        <div class="th">Status</div>
+        <div class="th" style="justify-content:flex-end;">Actions</div>
+      </div>
+      <div class="table-body" id="table-body">
+        <div class="shimmer-row"></div>
+        <div class="shimmer-row"></div>
+        <div class="shimmer-row"></div>
+        <div class="shimmer-row"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Detail Drawer -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer(event)">
+  <div class="drawer" id="drawer">
+    <button class="drawer-close" onclick="closeDrawerBtn()">✕ Close</button>
+    <div id="drawer-content"></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script src="../js/api.js"></script>
+<script>
+/* ── Background ──────────────────────────────────────── */
+const canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resize(); window.addEventListener('resize', resize);
+(function draw(){
+  const W=canvas.width,H=canvas.height,cx=W*.5,cy=H*.5,b=Math.min(W,H);
+  ctx.clearRect(0,0,W,H);
+  [{a0:3.9,a1:5.5,r:0.44,lw:90,alpha:0.05,blur:55,color:'20,55,160'},{a0:4.0,a1:5.4,r:0.42,lw:9,alpha:0.28,blur:6,color:'55,115,230'},{a0:0.9,a1:2.3,r:0.36,lw:8,alpha:0.22,blur:6,color:'50,105,220'}].forEach(a=>{
+    ctx.save(); ctx.filter=`blur(${a.blur}px)`; ctx.strokeStyle=`rgba(${a.color},${a.alpha})`; ctx.lineWidth=a.lw; ctx.lineCap='round'; ctx.beginPath(); ctx.arc(cx,cy,a.r*b,a.a0,a.a1); ctx.stroke(); ctx.restore();
+  });
+})();
+
+/* ── Auth ────────────────────────────────────────────── */
+if (!api.admin.requireAuth()) throw 0;
+function handleLogout() { api.admin.logout(); window.location.href = '../index.html'; }
+
+function showToast(msg, type='success') {
+  const tc=document.getElementById('toast-container'), t=document.createElement('div');
+  t.className=`toast toast-${type}`; t.textContent=msg; tc.appendChild(t);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),400);},3000);
+}
+
+const CAT_ICONS = { Education:'📚', Health:'💧', Environment:'🌱', Poverty:'🏠', Women:'✊', Children:'👦', Disaster:'🚨', Animals:'🐾', default:'🤝' };
+function fmtMoney(n) { return n >= 1000000 ? (n/1000000).toFixed(1)+'M' : n >= 1000 ? (n/1000).toFixed(0)+'K' : n ? String(n) : '0'; }
+
+let allNgos = [], sortField = 'orgName', sortDir = 1;
+
+/* ── Sort ─────────────────────────────────────────────── */
+function sortBy(field) {
+  if (sortField === field) sortDir *= -1; else { sortField = field; sortDir = 1; }
+  document.querySelectorAll('.th').forEach(th => th.classList.remove('sorted'));
+  event.target.classList.add('sorted');
+  applyFilters();
+}
+
+/* ── Filter + render ──────────────────────────────────── */
+function applyFilters() {
+  const q      = document.getElementById('search').value.trim().toLowerCase();
+  const status = document.getElementById('filter-status').value;
+  const cat    = document.getElementById('filter-cat').value;
+
+  let list = allNgos.filter(n => {
+    const matchQ   = !q || n.orgName?.toLowerCase().includes(q) || n.category?.toLowerCase().includes(q) || n.city?.toLowerCase().includes(q);
+    const matchSt  = !status || (status==='verified' ? n.verified : !n.verified);
+    const matchCat = !cat || n.category === cat;
+    return matchQ && matchSt && matchCat;
+  });
+
+  list.sort((a,b) => {
+    const av = a[sortField] ?? ''; const bv = b[sortField] ?? '';
+    if (typeof av === 'number') return (av - bv) * sortDir;
+    return String(av).localeCompare(String(bv)) * sortDir;
+  });
+
+  document.getElementById('result-count').textContent = list.length + ' organization' + (list.length!==1?'s':'');
+  renderTable(list);
+}
+
+/* ── Render table ─────────────────────────────────────── */
+function renderTable(list) {
+  const body = document.getElementById('table-body');
+  if (!list.length) {
+    body.innerHTML = `<div class="empty-row">No organizations match your filters.</div>`;
+    return;
+  }
+  body.innerHTML = list.map(n => `
+    <div class="ngo-row">
+      <div class="cell-org" style="cursor:pointer;" onclick="openDrawer('${n.email}')">
+        <div class="org-logo">${CAT_ICONS[n.category] || CAT_ICONS.default}</div>
+        <div style="min-width:0;">
+          <div class="org-name">${n.orgName}</div>
+          <div class="org-email">${n.email}</div>
+        </div>
+      </div>
+      <div class="cell-text">${n.category || '—'}</div>
+      <div class="cell-text">${n.city || '—'}</div>
+      <div class="cell-num">${n.donorCount || 0}</div>
+      <div class="cell-money">PKR ${fmtMoney(n.totalRaised || 0)}</div>
+      <div>
+        <span class="status-pill ${n.verified ? 'pill-verified' : 'pill-pending'}">
+          ${n.verified ? '● Verified' : '◌ Pending'}
+        </span>
+      </div>
+      <div class="row-actions">
+        ${!n.verified
+          ? `<button class="row-btn row-verify" onclick="doVerify('${n.email}')">Verify</button>`
+          : ''}
+        <button class="row-btn row-reject" onclick="doReject('${n.email}')">Remove</button>
+      </div>
+    </div>`).join('');
+}
+
+/* ── Actions ──────────────────────────────────────────── */
+async function doVerify(email) {
+  try {
+    await api.admin.verifyNgo(email);
+    const n = allNgos.find(x => x.email === email);
+    if (n) { n.verified = true; n.verifiedAt = new Date().toISOString().split('T')[0]; }
+    applyFilters();
+    showToast('NGO verified successfully', 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function doReject(email) {
+  if (!confirm('Remove this NGO permanently? This cannot be undone.')) return;
+  try {
+    await api.admin.rejectNgo(email);
+    allNgos = allNgos.filter(n => n.email !== email);
+    applyFilters();
+    closeDrawerBtn();
+    showToast('NGO removed', 'error');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+/* ── Detail drawer ────────────────────────────────────── */
+async function openDrawer(email) {
+  const n = allNgos.find(x => x.email === email);
+  if (!n) return;
+
+  // Fetch documents for this NGO
+  let docsHtml = '';
+  try {
+    const docs = await api.admin.getNgoDocuments(n.ngo_id);
+    if (docs.length) {
+      docsHtml = `
+        <div class="drawer-section">
+          <div class="drawer-section-title">Verification Documents</div>
+          ${docs.map(d => `
+            <div style="font-size:0.76rem;color:var(--text-body);padding:0.5rem 0;border-bottom:1px solid rgba(40,80,180,0.10);">
+              <div style="font-weight:600;color:var(--text-primary);">${d.FILE_PATH || d.file_path || 'Document'}</div>
+              <div style="font-size:0.65rem;color:var(--text-muted);margin-top:0.2rem;">
+                ${d.DOC_TYPE || d.doc_type || 'File'} • ${d.UPLOADED_AT ? new Date(d.UPLOADED_AT).toLocaleDateString('en-PK') : d.uploaded_at ? new Date(d.uploaded_at).toLocaleDateString('en-PK') : 'Unknown date'}
+              </div>
+            </div>
+          `).join('')}
+        </div>`;
+    }
+  } catch(e) {
+    console.error('Failed to load documents:', e);
+  }
+
+  document.getElementById('drawer-content').innerHTML = `
+    <div class="drawer-title">${n.orgName}</div>
+    <div class="drawer-sub">${n.email}</div>
+
+    <div class="drawer-stat-row">
+      <div class="drawer-stat">
+        <div class="drawer-stat-num">${n.donorCount || 0}</div>
+        <div class="drawer-stat-lbl">Donors</div>
+      </div>
+      <div class="drawer-stat">
+        <div class="drawer-stat-num">PKR ${fmtMoney(n.totalRaised||0)}</div>
+        <div class="drawer-stat-lbl">Raised</div>
+      </div>
+      <div class="drawer-stat">
+        <div class="drawer-stat-num">${n.openNeeds||0}</div>
+        <div class="drawer-stat-lbl">Open Needs</div>
+      </div>
+      <div class="drawer-stat">
+        <div class="drawer-stat-num ${n.verified ? '' : 'amber'}">${n.verified?'Active':'Pending'}</div>
+        <div class="drawer-stat-lbl">Status</div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Organization Details</div>
+      <div class="drawer-field"><div class="df-label">Category</div><div class="df-value">${n.category||'—'}</div></div>
+      <div class="drawer-field"><div class="df-label">City</div><div class="df-value">${n.city||'—'}</div></div>
+      <div class="drawer-field"><div class="df-label">Phone</div><div class="df-value">${n.phone||'—'}</div></div>
+      <div class="drawer-field"><div class="df-label">Joined</div><div class="df-value">${n.joinedAt||'—'}</div></div>
+      ${n.verifiedAt ? `<div class="drawer-field"><div class="df-label">Verified</div><div class="df-value">${n.verifiedAt}</div></div>` : ''}
+    </div>
+
+    ${n.mission ? `
+      <div class="drawer-section">
+        <div class="drawer-section-title">Mission</div>
+        <div style="font-size:0.78rem;color:var(--text-body);line-height:1.65;">${n.mission}</div>
+      </div>` : ''}
+
+    ${docsHtml}
+
+    <div style="display:flex;gap:0.6rem;margin-top:1.6rem;">
+      ${!n.verified ? `<button class="row-btn row-verify" style="flex:1;padding:0.7rem;" onclick="doVerify('${n.email}')">✓ Verify</button>` : ''}
+      <button class="row-btn row-reject" style="flex:1;padding:0.7rem;" onclick="doReject('${n.email}')">Remove</button>
+    </div>`;
+  document.getElementById('drawer-overlay').classList.add('open');
+}
+
+function closeDrawer(e) { if (e.target === document.getElementById('drawer-overlay')) closeDrawerBtn(); }
+function closeDrawerBtn() { document.getElementById('drawer-overlay').classList.remove('open'); }
+
+/* ── Load ─────────────────────────────────────────────── */
+async function load() {
+  try {
+    allNgos = await api.admin.getAllNgos();
+    applyFilters();
+  } catch(e) {
+    showToast('Failed to load NGOs', 'error');
+  }
+}
+
+load();
+</script>
+</body>
+</html>

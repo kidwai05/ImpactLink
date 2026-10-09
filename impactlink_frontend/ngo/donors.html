@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Donors — ImpactLink</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <style>
+        canvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .page-shell {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Hero ── */
+        .hero {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            padding-bottom: 1.8rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(120,60,200,0.12);
+            animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.1s both;
+        }
+
+        .hero-title {
+            font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+            margin-bottom: 0.3rem;
+        }
+
+        /* ── Stat strip ── */
+        .stat-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.2s both;
+        }
+
+        .stat-box {
+            flex: 1;
+            background: linear-gradient(145deg, rgba(15,8,35,0.7), rgba(10,5,25,0.7));
+            border: 1px solid rgba(120,60,200,0.20);
+            border-radius: 10px;
+            padding: 1rem 1.2rem;
+            text-align: center;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+            .stat-box:hover {
+                border-color: rgba(150,80,240,0.45);
+                box-shadow: 0 0 20px rgba(100,40,200,0.10);
+            }
+
+        .stat-num {
+            font-family: var(--font-display);
+            font-size: 1.7rem;
+            font-weight: 600;
+            color: var(--accent-purple);
+            text-shadow: 0 0 12px rgba(200,168,240,0.45);
+        }
+
+        .stat-label {
+            font-size: 0.62rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+
+        /* ── Section header ── */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.2rem;
+            animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.25s both;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            font-weight: 400;
+            letter-spacing: 0.14em;
+            color: var(--text-primary);
+            text-shadow: 0 0 8px rgba(255,255,255,0.4);
+        }
+
+        /* ── Search bar ── */
+        .search-wrap {
+            position: relative;
+            margin-bottom: 1.4rem;
+            animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.28s both;
+        }
+
+        .search-input {
+            font-family: var(--font-body);
+            font-size: 0.82rem;
+            color: var(--text-primary);
+            background: rgba(10,5,28,0.80);
+            border: 1px solid rgba(100,40,200,0.25);
+            border-radius: 6px;
+            padding: 0.75rem 1rem 0.75rem 2.6rem;
+            outline: none;
+            width: 100%;
+            transition: border-color 0.25s, box-shadow 0.25s;
+        }
+
+            .search-input::placeholder {
+                color: rgba(120,80,200,0.35);
+            }
+
+            .search-input:focus {
+                border-color: rgba(150,80,240,0.65);
+                box-shadow: 0 0 0 3px rgba(100,30,200,0.08);
+            }
+
+        .search-icon {
+            position: absolute;
+            left: 0.85rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(140,80,220,0.45);
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        /* ── Sort tabs ── */
+        .sort-tabs {
+            display: flex;
+            gap: 0.4rem;
+            margin-bottom: 1.4rem;
+            animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.30s both;
+        }
+
+        .sort-tab {
+            font-family: var(--font-body);
+            font-size: 0.63rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            padding: 0.4rem 0.9rem;
+            border: 1px solid rgba(100,40,200,0.20);
+            border-radius: 20px;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+            .sort-tab:hover {
+                border-color: rgba(140,70,220,0.50);
+                color: rgba(200,168,240,0.8);
+            }
+
+            .sort-tab.active {
+                border-color: rgba(150,80,240,0.65);
+                background: rgba(80,20,160,0.18);
+                color: var(--accent-purple);
+            }
+
+        /* ── Donor table ── */
+        .donor-table-wrap {
+            animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) 0.35s both;
+        }
+
+        .donor-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .donor-table th {
+                font-family: var(--font-body);
+                font-size: 0.60rem;
+                letter-spacing: 0.18em;
+                text-transform: uppercase;
+                color: var(--text-muted);
+                padding: 0 1rem 0.8rem;
+                text-align: left;
+                font-weight: 400;
+                border-bottom: 1px solid rgba(100,40,200,0.14);
+            }
+
+                .donor-table th:last-child {
+                    text-align: right;
+                }
+
+        /* ── Donor rows ── */
+        .donor-row {
+            border-bottom: 1px solid rgba(80,30,160,0.08);
+            transition: background 0.2s;
+            animation: fadeUp 0.55s cubic-bezier(0.22,1,0.36,1) both;
+            cursor: default;
+        }
+
+            .donor-row:hover {
+                background: rgba(80,20,160,0.06);
+            }
+
+            .donor-row td {
+                padding: 1rem;
+                vertical-align: middle;
+            }
+
+                .donor-row td:last-child {
+                    text-align: right;
+                }
+
+        /* avatar + name cell */
+        .donor-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+        }
+
+        .donor-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--accent-purple);
+            background: rgba(80,20,160,0.20);
+            border: 1px solid rgba(140,70,220,0.28);
+        }
+
+        .donor-name {
+            font-family: var(--font-display);
+            font-size: 0.88rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            color: var(--text-primary);
+            line-height: 1.3;
+        }
+
+        .donor-email {
+            font-size: 0.62rem;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            margin-top: 0.1rem;
+        }
+
+        /* amount cell */
+        .amount-val {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--accent-purple);
+            text-shadow: 0 0 8px rgba(200,168,240,0.35);
+        }
+
+        /* donation count badge */
+        .count-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-family: var(--font-display);
+            font-size: 0.82rem;
+            color: rgba(180,150,240,0.80);
+            background: rgba(80,20,160,0.18);
+            border: 1px solid rgba(120,60,200,0.25);
+        }
+
+        /* date cell */
+        .date-val {
+            font-size: 0.70rem;
+            color: var(--text-muted);
+            letter-spacing: 0.06em;
+        }
+
+        /* status cell */
+        .status-dot {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.62rem;
+            letter-spacing: 0.10em;
+            text-transform: uppercase;
+            color: rgba(120,220,150,0.80);
+        }
+
+            .status-dot::before {
+                content: '';
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: rgba(80,200,120,0.75);
+                box-shadow: 0 0 6px rgba(60,200,100,0.50);
+            }
+
+        /* top donor crown */
+        .crown {
+            font-size: 0.85rem;
+            margin-right: 0.3rem;
+        }
+
+        /* ── Expandable donation history per donor ── */
+        .history-row {
+            display: none;
+        }
+
+            .history-row.open {
+                display: table-row;
+            }
+
+        .history-inner {
+            padding: 0 1rem 1rem 4rem;
+            background: rgba(50,10,120,0.06);
+        }
+
+        .history-title {
+            font-size: 0.62rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 0.6rem;
+        }
+
+        .history-entry {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.45rem 0;
+            border-bottom: 1px solid rgba(80,30,160,0.07);
+            font-size: 0.72rem;
+        }
+
+            .history-entry:last-child {
+                border-bottom: none;
+            }
+
+        .h-date {
+            color: var(--text-muted);
+            letter-spacing: 0.06em;
+        }
+
+        .h-org {
+            color: var(--text-body);
+            flex: 1;
+            padding: 0 1rem;
+        }
+
+        .h-amt {
+            font-family: var(--font-display);
+            color: var(--accent-purple);
+        }
+
+        /* expand btn */
+        .expand-btn {
+            font-family: var(--font-body);
+            font-size: 0.60rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: 0.35rem 0.75rem;
+            border-radius: 2px;
+            background: transparent;
+            border: 1px solid rgba(100,40,200,0.22);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+            .expand-btn:hover {
+                border-color: rgba(150,80,240,0.50);
+                color: var(--accent-purple);
+            }
+
+        /* ── Empty state ── */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .empty-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.45;
+        }
+
+        .empty-title {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            font-weight: 400;
+            letter-spacing: 0.14em;
+            color: var(--text-primary);
+            margin-bottom: 0.6rem;
+            opacity: 0.8;
+        }
+
+        .empty-sub {
+            font-size: 0.76rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* ── Shimmer ── */
+        .shimmer-row {
+            height: 64px;
+            border-radius: 8px;
+            margin-bottom: 0.6rem;
+            background: linear-gradient(90deg, rgba(30,10,70,0.2) 25%, rgba(50,15,110,0.28) 50%, rgba(30,10,70,0.2) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            to {
+                background-position: -200% 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="c"></canvas>
+
+    <div class="page-shell">
+        <nav class="nav">
+            <a href="../index.html" class="nav-logo">ImpactLink</a>
+            <div class="nav-links">
+                <a href="profile.html" class="nav-link">Profile</a>
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="needs.html" class="nav-link">Needs</a>
+                <a href="donors.html" class="nav-link active">Donors</a>
+                <button class="nav-link logout" onclick="handleLogout()">Logout</button>
+            </div>
+        </nav>
+
+        <div class="page-content">
+
+            <!-- Hero -->
+            <div class="hero">
+                <div>
+                    <div class="display-heading hero-title">Committed Donors</div>
+                    <div class="sub-heading" style="margin-top:0.4rem;">Everyone who has donated to your organization</div>
+                </div>
+            </div>
+
+            <!-- Stat strip -->
+            <div class="stat-row">
+                <div class="stat-box"><div class="stat-num" id="s-total">—</div><div class="stat-label">Total Donors</div></div>
+                <div class="stat-box"><div class="stat-num" id="s-raised">—</div><div class="stat-label">Total Raised (PKR)</div></div>
+                <div class="stat-box"><div class="stat-num" id="s-avg">—</div><div class="stat-label">Avg. Donation (PKR)</div></div>
+                <div class="stat-box"><div class="stat-num" id="s-top">—</div><div class="stat-label">Top Donor</div></div>
+            </div>
+
+            <!-- Section header -->
+            <div class="section-header">
+                <div class="section-title">Donor List</div>
+                <div id="donor-count" style="font-size:0.68rem;color:var(--text-muted);letter-spacing:0.10em;"></div>
+            </div>
+
+            <!-- Search -->
+            <div class="search-wrap">
+                <span class="search-icon">⌕</span>
+                <input class="search-input" id="search-input" type="text" placeholder="Search by name or email…" oninput="handleSearch()" />
+            </div>
+
+            <!-- Sort tabs -->
+            <div class="sort-tabs">
+                <button class="sort-tab active" onclick="setSort('total', this)">Highest Donated</button>
+                <button class="sort-tab" onclick="setSort('recent', this)">Most Recent</button>
+                <button class="sort-tab" onclick="setSort('count', this)">Most Donations</button>
+                <button class="sort-tab" onclick="setSort('name', this)">Name A–Z</button>
+            </div>
+
+            <!-- Donor table / shimmer -->
+            <div class="donor-table-wrap" id="table-wrap">
+                <div class="shimmer-row"></div>
+                <div class="shimmer-row"></div>
+                <div class="shimmer-row"></div>
+                <div class="shimmer-row"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="../js/api.js"></script>
+    <script>
+        /* ── Canvas swirl ── */
+        const canvas = document.getElementById('c');
+        const ctx = canvas.getContext('2d');
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        resize(); window.addEventListener('resize', resize);
+        const ARCS = [
+            { a0: 3.9, a1: 5.5, r: 0.44, lw: 90, alpha: 0.07, blur: 55, color: '80,20,180' },
+            { a0: 3.95, a1: 5.45, r: 0.43, lw: 35, alpha: 0.13, blur: 28, color: '100,35,200' },
+            { a0: 4.0, a1: 5.4, r: 0.42, lw: 9, alpha: 0.38, blur: 6, color: '140,70,230' },
+            { a0: 0.8, a1: 2.4, r: 0.38, lw: 80, alpha: 0.06, blur: 50, color: '70,15,165' },
+            { a0: 0.9, a1: 2.3, r: 0.36, lw: 8, alpha: 0.30, blur: 6, color: '130,60,220' },
+            { a0: 4.05, a1: 4.65, r: 0.42, lw: 2, alpha: 0.60, blur: 2, color: '180,130,255' },
+        ];
+        function drawSwirl() {
+            const W = canvas.width, H = canvas.height, cx = W * 0.5, cy = H * 0.5, b = Math.min(W, H);
+            ctx.clearRect(0, 0, W, H);
+            ARCS.forEach(a => {
+                ctx.save(); ctx.filter = `blur(${a.blur}px)`;
+                ctx.strokeStyle = `rgba(${a.color},${a.alpha})`;
+                ctx.lineWidth = a.lw; ctx.lineCap = 'round';
+                ctx.beginPath(); ctx.arc(cx, cy, a.r * b, a.a0, a.a1); ctx.stroke(); ctx.restore();
+            });
+        }
+        drawSwirl();
+
+        /* ── Auth ── */
+        const session = api.ngo.requireAuth(); if (!session) throw 0;
+        function handleLogout() { api.ngo.logout(); window.location.href = '../pages/login.html'; }
+
+        /* ── State ── */
+        let allDonors = [];
+        let filtered = [];
+        let sortKey = 'total';
+        let searchQuery = '';
+        let openRows = new Set();
+
+        /* ── Sort ── */
+        function setSort(key, btn) {
+            sortKey = key;
+            document.querySelectorAll('.sort-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            applyFilters();
+        }
+
+        /* ── Search ── */
+        function handleSearch() {
+            searchQuery = document.getElementById('search-input').value.toLowerCase();
+            applyFilters();
+        }
+
+        /* ── Apply filters + sort ── */
+        function applyFilters() {
+            filtered = allDonors.filter(d =>
+                d.name.toLowerCase().includes(searchQuery) ||
+                d.email.toLowerCase().includes(searchQuery)
+            );
+
+            filtered.sort((a, b) => {
+                if (sortKey === 'total') return b.totalDonated - a.totalDonated;
+                if (sortKey === 'recent') return new Date(b.lastDonation) - new Date(a.lastDonation);
+                if (sortKey === 'count') return b.donations - a.donations;
+                if (sortKey === 'name') return a.name.localeCompare(b.name);
+                return 0;
+            });
+
+            renderTable();
+        }
+
+        /* ── Format date ── */
+        function fmtDate(str) {
+            if (!str) return '—';
+            const d = new Date(str);
+            return d.toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        /* ── Render stats ── */
+        function renderStats(donors) {
+            const total = donors.length;
+            const raised = donors.reduce((s, d) => s + d.totalDonated, 0);
+            const avg = total ? Math.round(raised / donors.reduce((s, d) => s + d.donations, 0)) : 0;
+            const top = donors.reduce((a, b) => a.totalDonated > b.totalDonated ? a : b, {});
+
+            document.getElementById('s-total').textContent = total;
+            document.getElementById('s-raised').textContent = raised >= 1000 ? (raised / 1000).toFixed(0) + 'K' : raised;
+            document.getElementById('s-avg').textContent = avg >= 1000 ? (avg / 1000).toFixed(1) + 'K' : avg;
+            document.getElementById('s-top').textContent = top.name ? top.name.split(' ')[0] : '—';
+        }
+
+        /* ── Render table ── */
+        function renderTable() {
+            const wrap = document.getElementById('table-wrap');
+            document.getElementById('donor-count').textContent =
+                filtered.length + ' donor' + (filtered.length !== 1 ? 's' : '');
+
+            if (!filtered.length) {
+                wrap.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">💜</div>
+            <div class="empty-title">${searchQuery ? 'No Results Found' : 'No Donors Yet'}</div>
+            <div class="empty-sub">${searchQuery
+                        ? 'Try a different name or email.'
+                        : 'Donors who contribute to your NGO will appear here.'}</div>
+          </div>`;
+                return;
+            }
+
+            const topAmount = filtered[0]?.totalDonated || 0;
+
+            const table = document.createElement('table');
+            table.className = 'donor-table';
+            table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Donor</th>
+            <th>Donations</th>
+            <th>Total Given</th>
+            <th>Last Donation</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>`;
+
+            wrap.innerHTML = '';
+            wrap.appendChild(table);
+
+            const tbody = document.getElementById('table-body');
+
+            filtered.forEach((donor, i) => {
+                const initials = donor.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+                const isTop = donor.totalDonated === topAmount && i === 0;
+
+                // Build mock donation history entries for this donor
+                const historyHtml = buildHistory(donor);
+
+                // Main row
+                const tr = document.createElement('tr');
+                tr.className = 'donor-row';
+                tr.style.animationDelay = (0.04 + i * 0.05) + 's';
+                tr.innerHTML = `
+          <td>
+            <div class="donor-cell">
+              <div class="donor-avatar">${initials}</div>
+              <div>
+                <div class="donor-name">${isTop ? '<span class="crown">👑</span>' : ''}${donor.name}</div>
+                <div class="donor-email">${donor.email}</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="count-badge">${donor.donations}</span></td>
+          <td><span class="amount-val">PKR ${donor.totalDonated.toLocaleString()}</span></td>
+          <td><span class="date-val">${fmtDate(donor.lastDonation)}</span></td>
+          <td><span class="status-dot">Committed</span></td>
+          <td>
+            <button class="expand-btn" id="expand-${donor.id}" onclick="toggleHistory(${donor.id})">Details</button>
+          </td>`;
+                tbody.appendChild(tr);
+
+                // Hidden history row
+                const histRow = document.createElement('tr');
+                histRow.className = 'history-row';
+                histRow.id = `history-${donor.id}`;
+                histRow.innerHTML = `
+          <td colspan="6">
+            <div class="history-inner">
+              <div class="history-title">Donation History</div>
+              ${historyHtml}
+            </div>
+          </td>`;
+                tbody.appendChild(histRow);
+            });
+        }
+
+        /* ── Build history for a donor (real need/item data) ── */
+        function buildHistory(donor) {
+            if (!donor.commitments || !donor.commitments.length) {
+                return '<div class="history-entry" style="color:var(--text-muted);">No detailed history available.</div>';
+            }
+            return donor.commitments.map(c => {
+                const hasAmount = c.amount > 0;
+                const hasItem = c.item && c.item.trim();
+                const contrib = hasAmount && hasItem
+                    ? `PKR ${c.amount.toLocaleString()} · 📦 ${c.item}`
+                    : hasAmount ? `PKR ${c.amount.toLocaleString()}`
+                        : hasItem ? `📦 ${c.item}`
+                            : '—';
+                return `<div class="history-entry">
+          <span class="h-date">${fmtDate(c.lastDonation)}</span>
+          <span class="h-org">${c.need || '—'}</span>
+          <span class="h-amt">${contrib}</span>
+        </div>`;
+            }).join('');
+        }
+
+        /* ── Toggle history row ── */
+        function toggleHistory(id) {
+            const row = document.getElementById(`history-${id}`);
+            const btn = document.getElementById(`expand-${id}`);
+            if (!row) return;
+            const isOpen = row.classList.contains('open');
+            row.classList.toggle('open', !isOpen);
+            btn.textContent = isOpen ? 'Details' : 'Hide';
+        }
+
+        /* ── Init ── */
+        (async () => {
+            try {
+                const result = await api.ngo.getDonorMatches();
+                allDonors = (result.matched || []).map(d => ({
+                    ...d,
+                    commitments: [{ need: d.need, item: d.item, lastDonation: d.lastDonation }],
+                }));
+                renderStats(allDonors);
+                applyFilters();
+            } catch (e) {
+                document.getElementById('table-wrap').innerHTML =
+                    `<div class="empty-state"><div class="empty-sub">Failed to load donors.</div></div>`;
+            }
+        })();
+    </script>
+</body>
+</html>
